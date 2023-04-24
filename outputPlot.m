@@ -30,12 +30,16 @@ plot(time,peW(:,4:6));legend('pewrX','pewrY','pewrZ');
 figure();
 subplot(2,2,1)
 plot(time,dataOut(:,1:3));legend('rfx','rfy','rfz');
+ylabel('force (N)');xlabel('time (s)')
 subplot(2,2,2)
 plot(time,dataOut(:,4));legend('rtauz');
+ylabel('torque (Nm)');xlabel('time (s)')
 subplot(2,2,3)
 plot(time,dataOut(:,5:7));legend('lfx','lfy','lfz');
+ylabel('force (N)');xlabel('time (s)')
 subplot(2,2,4)
 plot(time,dataOut(:,8));legend('ltauz');
+ylabel('torque (Nm)');xlabel('time (s)')
 
 figure();
 subplot(2,1,1)

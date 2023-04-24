@@ -4,6 +4,7 @@
 
 #include "WBC_srb.h"
 #include <iostream>
+#include "iomanip"
 using namespace Eigen;
 
 WBC_srb::WBC_srb():wbc_srb_QP(8,12) {
@@ -60,7 +61,10 @@ WBC_srb::WBC_srb():wbc_srb_QP(8,12) {
     uOld.setZero();
     uNow.setZero();
 
-    wbc_srb_QP.setPrintLevel(qpOASES::PL_NONE);
+    qpOASES::Options options;
+//    options.setToReliable();
+    options.printLevel=qpOASES::PL_NONE;
+    wbc_srb_QP.setOptions(options);
 };
 
 void WBC_srb::set_state(double *xCoM, double *vCoM,double *pe, double *eul, double *omegaW) {
@@ -139,22 +143,18 @@ void WBC_srb::runQP() {
 
     H_tmp=model_A.transpose()*QP_S.asDiagonal().toDenseMatrix()*model_A+QP_alpha*QP_Wc.asDiagonal().toDenseMatrix()+
             QP_beta*QP_Wp.asDiagonal().toDenseMatrix();
-    H_tmp=H_tmp*0.5;
     g_tmp=-model_bd.transpose()*QP_S.asDiagonal().toDenseMatrix()*model_A-
             QP_beta*uOld.transpose()*QP_Wp.asDiagonal().toDenseMatrix();
 
+//    std::cout<<model_A<<std::endl;
+//    std::cout<<H_tmp<<std::endl;
 
     Matrix<double,12,8> A_tmp;
     A_tmp.setZero();
     A_tmp.block<6,4>(0,0)=M_c;
     A_tmp.block<6,4>(6,4)=M_c;
 
-    for (int i=0;i<12;i++)
-        std::cout<<qp_lbA[i]<<" ";
-    std::cout<<std::endl;
-    for (int i=0;i<12;i++)
-        std::cout<<qp_ubA[i]<<" ";
-    std::cout<<std::endl;
+
 
     copy_Eigen_to_real_t(qp_H,H_tmp,8,8);
     copy_Eigen_to_real_t(qp_g,g_tmp,1,8);
@@ -177,6 +177,9 @@ void WBC_srb::runQP() {
         std::cout<<"max_nwsr"<<std::endl;
     else if (res==qpOASES::RET_INIT_FAILED)
         std::cout<<"init_failed"<<std::endl;
+    else
+        std::cout<<qpOASES::getSimpleStatus(res)<<std::endl;
+
     qpOASES::real_t xOpt[8];
     wbc_srb_QP.getPrimalSolution(xOpt);
 
@@ -189,11 +192,47 @@ void WBC_srb::runQP() {
     BoundRes=A_tmp*uNow;
     Matrix<double,6,1> bAct;
     bAct=model_A*uNow;
-    std::cout<<"bAct "<<bAct.transpose()<<std::endl;
-    std::cout<<"bDes "<<model_bd.transpose()<<std::endl;
-    std::cout<<"uOld "<<uOld.transpose()<<std::endl;
-    std::cout<<"uNow"<<uNow.transpose()<<std::endl;
-    std::cout<<"BoundRes "<<BoundRes.transpose()<<std::endl;
+    std::cout<<"bAct ";
+    for (int i=0;i<6;i++)
+    {std::cout.width(10);
+        std::cout<<bAct(i)<<"\t";}
+    std::cout<<std::endl;
+    std::cout<<"bDes ";
+    for (int i=0;i<6;i++)
+    {std::cout.width(10);
+        std::cout<<model_bd(i)<<"\t";}
+    std::cout<<std::endl;
+
+    std::cout<<"uOld ";
+    for (int i=0;i<8;i++)
+    {std::cout.width(10);
+        std::cout<<uOld(i)<<"\t";}
+    std::cout<<std::endl;
+    std::cout<<"uNow ";
+    for (int i=0;i<8;i++)
+    {std::cout.width(10);
+        std::cout<<uNow(i)<<"\t";}
+    std::cout<<std::endl;
+
+    std::cout.precision(3);
+    std::cout.width(10);
+    std::cout<<"lowBound ";
+    for (int i=0;i<12;i++)
+    {std::cout.width(10);
+        std::cout<<qp_lbA[i]<<"\t";}
+    std::cout<<std::endl;
+    std::cout.width(10);
+    std::cout<<"RelBound ";
+    for (int i=0;i<12;i++)
+    {std::cout.width(10);
+        std::cout<<BoundRes(i)<<"\t";}
+    std::cout<<std::endl;
+    std::cout.width(10);
+    std::cout<<"uppBound ";
+    for (int i=0;i<12;i++)
+    {std::cout.width(10);
+        std::cout<<qp_ubA[i]<<"\t";}
+    std::cout<<std::endl;
     uOld=uNow;
 }
 

@@ -34,15 +34,15 @@ int main()
     w_d[0]=0;w_d[1]=0;w_d[2]=0;
     legIndPhase[0]=1;legIndPhase[1]=1;
 
-    wbc_Controller.QP_S<<20,20,450,10,10,10;
+    wbc_Controller.QP_S<<20,20,50,450,450,450;
     wbc_Controller.QP_Wp<<10,10,4,10,10,10,4,10;
     wbc_Controller.QP_Wc<<3,3,3,3,3,3,3,3;
-    wbc_Controller.QP_alpha=0;
-    wbc_Controller.QP_beta=0;
-    wbc_Controller.K_xp<<0,0,0;
-    wbc_Controller.K_wd<<0,0,0;
-    wbc_Controller.K_wp<<0,0,0;
-    wbc_Controller.K_wd<<0,0,0;
+    wbc_Controller.QP_alpha=0.001;
+    wbc_Controller.QP_beta=0.1;
+    wbc_Controller.K_xp<<150,150,150;
+    wbc_Controller.K_wd<<25,25,25;
+    wbc_Controller.K_wp<<200,200,200;
+    wbc_Controller.K_wd<<30,30,30;
 
 //    xCoM[0]=0;xCoM[0]=0;xCoM[2]=0.59;
 //    wbc_Controller.setModelPara(14,Ig,0.5);
@@ -88,7 +88,9 @@ int main()
         wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaW);
         wbc_Controller.setLegState(legIndPhase);
         wbc_Controller.get_ddX_ddw(xd, dx_d, Euld, w_d);
-        wbc_Controller.runQP();
+        if (i*0.001>2.1)
+            wbc_Controller.runQP();
+
 
         // output data
         tmpValue.clear();

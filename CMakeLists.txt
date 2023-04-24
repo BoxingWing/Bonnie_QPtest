@@ -7,6 +7,7 @@ add_subdirectory(quill)
 add_subdirectory(qpOASES)
 
 include_directories("/usr/include/eigen3")
+include_directories("qpOASES/include")
 
 
 add_executable(Bonnie_QPtest main.cpp WBC_srb.cpp WBC_srb.h FileOperator.cpp FileOperator.h)
