@@ -105,6 +105,8 @@ int main()
         tmpValue.push_back(wbc_Controller.uNow(7));
         tmpValue.push_back(legInd[0]);
         tmpValue.push_back(legInd[1]);
+        tmpValue.push_back(wbc_Controller.last_nWSR);
+        tmpValue.push_back(wbc_Controller.last_cpuTime);
 
         tmpStr = fmt::format("{:.5f}", fmt::join(tmpValue, " "));
         LOG_INFO(dl, "{}", tmpStr);

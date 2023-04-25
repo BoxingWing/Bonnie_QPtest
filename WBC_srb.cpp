@@ -128,7 +128,7 @@ void WBC_srb::get_ddX_ddw(double *xd, double *dx_d, double *Euld, double *w_d) {
 }
 
 void WBC_srb::runQP() {
-    std::cout<<"--------------"<<std::endl;
+
     Matrix<double,3,1> tmp;
     model_A.block<3,3>(3,0)= crossMatrix(pe_cur.block<3,1>(0,0)-xCoM_cur);
     model_A.block<3,3>(3,4)= crossMatrix(pe_cur.block<3,1>(3,0)-xCoM_cur);
@@ -155,7 +155,6 @@ void WBC_srb::runQP() {
     A_tmp.block<6,4>(6,4)=M_c;
 
 
-
     copy_Eigen_to_real_t(qp_H,H_tmp,8,8);
     copy_Eigen_to_real_t(qp_g,g_tmp,1,8);
     copy_Eigen_to_real_t(qp_A,A_tmp,12,8);
@@ -171,69 +170,76 @@ void WBC_srb::runQP() {
     nWSR=100;
     cpu_time=0.001;
     res=wbc_srb_QP.init(qp_H,qp_g,qp_A,NULL,NULL,qp_lbA,qp_ubA,nWSR,&cpu_time,xOpt_iniGuess);
-    if (res==qpOASES::SUCCESSFUL_RETURN)
-        std::cout<<"successful_return"<<std::endl;
-    else if (res==qpOASES::RET_MAX_NWSR_REACHED)
-        std::cout<<"max_nwsr"<<std::endl;
-    else if (res==qpOASES::RET_INIT_FAILED)
-        std::cout<<"init_failed"<<std::endl;
-    else
-        std::cout<<qpOASES::getSimpleStatus(res)<<std::endl;
+    qpStatus=qpOASES::getSimpleStatus(res);
+    last_nWSR=nWSR;
+    last_cpuTime=cpu_time;
+
+    //std::cout<<qpStatus<<std::endl;
+
+//    if (res==qpOASES::SUCCESSFUL_RETURN)
+//        std::cout<<"successful_return"<<std::endl;
+//    else if (res==qpOASES::RET_MAX_NWSR_REACHED)
+//        std::cout<<"max_nwsr"<<std::endl;
+//    else if (res==qpOASES::RET_INIT_FAILED)
+//        std::cout<<"init_failed"<<std::endl;
+//    else
+//        std::cout<<qpOASES::getSimpleStatus(res)<<std::endl;
 
     qpOASES::real_t xOpt[8];
     wbc_srb_QP.getPrimalSolution(xOpt);
 
-    wbc_srb_QP.reset();
-
-    Matrix<double,12,1> BoundRes;
-
     uNow<<xOpt[0],xOpt[1],xOpt[2],xOpt[3],xOpt[4],
             xOpt[5],xOpt[6],xOpt[7];
-    BoundRes=A_tmp*uNow;
-    Matrix<double,6,1> bAct;
-    bAct=model_A*uNow;
-    std::cout<<"bAct ";
-    for (int i=0;i<6;i++)
-    {std::cout.width(10);
-        std::cout<<bAct(i)<<"\t";}
-    std::cout<<std::endl;
-    std::cout<<"bDes ";
-    for (int i=0;i<6;i++)
-    {std::cout.width(10);
-        std::cout<<model_bd(i)<<"\t";}
-    std::cout<<std::endl;
-
-    std::cout<<"uOld ";
-    for (int i=0;i<8;i++)
-    {std::cout.width(10);
-        std::cout<<uOld(i)<<"\t";}
-    std::cout<<std::endl;
-    std::cout<<"uNow ";
-    for (int i=0;i<8;i++)
-    {std::cout.width(10);
-        std::cout<<uNow(i)<<"\t";}
-    std::cout<<std::endl;
-
-    std::cout.precision(3);
-    std::cout.width(10);
-    std::cout<<"lowBound ";
-    for (int i=0;i<12;i++)
-    {std::cout.width(10);
-        std::cout<<qp_lbA[i]<<"\t";}
-    std::cout<<std::endl;
-    std::cout.width(10);
-    std::cout<<"RelBound ";
-    for (int i=0;i<12;i++)
-    {std::cout.width(10);
-        std::cout<<BoundRes(i)<<"\t";}
-    std::cout<<std::endl;
-    std::cout.width(10);
-    std::cout<<"uppBound ";
-    for (int i=0;i<12;i++)
-    {std::cout.width(10);
-        std::cout<<qp_ubA[i]<<"\t";}
-    std::cout<<std::endl;
     uOld=uNow;
+    wbc_srb_QP.reset();
+
+    //-------- for debugging --------------
+//    Matrix<double,12,1> BoundRes;
+//
+//    BoundRes=A_tmp*uNow;
+//    Matrix<double,6,1> bAct;
+//    bAct=model_A*uNow;
+//    std::cout<<"bAct ";
+//    for (int i=0;i<6;i++)
+//    {std::cout.width(10);
+//        std::cout<<bAct(i)<<"\t";}
+//    std::cout<<std::endl;
+//    std::cout<<"bDes ";
+//    for (int i=0;i<6;i++)
+//    {std::cout.width(10);
+//        std::cout<<model_bd(i)<<"\t";}
+//    std::cout<<std::endl;
+//
+//    std::cout<<"uOld ";
+//    for (int i=0;i<8;i++)
+//    {std::cout.width(10);
+//        std::cout<<uOld(i)<<"\t";}
+//    std::cout<<std::endl;
+//    std::cout<<"uNow ";
+//    for (int i=0;i<8;i++)
+//    {std::cout.width(10);
+//        std::cout<<uNow(i)<<"\t";}
+//    std::cout<<std::endl;
+//
+//    std::cout.precision(3);
+//    std::cout.width(10);
+//    std::cout<<"lowBound ";
+//    for (int i=0;i<12;i++)
+//    {std::cout.width(10);
+//        std::cout<<qp_lbA[i]<<"\t";}
+//    std::cout<<std::endl;
+//    std::cout.width(10);
+//    std::cout<<"RelBound ";
+//    for (int i=0;i<12;i++)
+//    {std::cout.width(10);
+//        std::cout<<BoundRes(i)<<"\t";}
+//    std::cout<<std::endl;
+//    std::cout.width(10);
+//    std::cout<<"uppBound ";
+//    for (int i=0;i<12;i++)
+//    {std::cout.width(10);
+//        std::cout<<qp_ubA[i]<<"\t";}
+//    std::cout<<std::endl;
 }
 
 Matrix<double, 3, 1> WBC_srb::getWfromR(Matrix<double, 3, 3> R) {

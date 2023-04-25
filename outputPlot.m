@@ -2,6 +2,7 @@ clear variables;
 close all;
 dataOut=load('OutputData.txt');
 stateData=load('StateData.txt');
+
 xCoM=stateData(:,1:3);
 vCoM=stateData(:,4:6);
 peW=stateData(:,7:12);
@@ -10,15 +11,21 @@ legIndPha=stateData(:,15:16);
 eul=stateData(:,17:19);
 omegaW=stateData(:,20:22);
 
+last_nWSR=dataOut(:,11);
+last_cpuTime=dataOut(:,12);
+
 time=(1:1:length(dataOut(:,1)))*0.001;
 
 figure();
 subplot(3,1,1)
 plot(time,xCoM);legend('pCoMx','pCoMy','pCoMz');
+ylabel('position (m)');
 subplot(3,1,2)
 plot(time,vCoM);legend('vCoMx','vCoMy','vCoMz');
+ylabel('velocity (m/s)');
 subplot(3,1,3)
 plot(time,eul);legend('roll','pitch','yaw');
+ylabel('attitude (rad)')
 
 figure();
 subplot(2,1,1)
@@ -48,5 +55,16 @@ subplot(2,1,2)
 plot(time,dataOut(:,3));
 hold on;
 plot(time,dataOut(:,7))
+
+figure();
+subplot(2,1,1)
+plot(time,last_nWSR);
+ylabel('nWSR');
+subplot(2,1,2)
+plot(time,last_cpuTime);
+ylabel('cpuTime');
+
+
+
 
 

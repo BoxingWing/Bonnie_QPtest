@@ -22,10 +22,6 @@ private:
     Eigen::Vector3d g_vec;
     Eigen::Matrix<double,6,4> M_c;
 
-
-
-public:
-    WBC_srb();
     // obj: (1/2)x'Hx+x'g
     // s.t. lbA<=Ax<=ubA
     //       lb<=x<=ub
@@ -37,6 +33,10 @@ public:
     qpOASES::int_t nWSR=100;
     qpOASES::real_t cpu_time=0.1;
     qpOASES::real_t xOpt_iniGuess[8];
+
+public:
+    WBC_srb();
+
 
     double x_d[3],x_cur[3],dx_d[3],dx_cur[3];
     int legInStance[2]; // right first
@@ -50,6 +50,10 @@ public:
     Eigen::Matrix<double,8,1> QP_Wc, QP_Wp;
     Eigen::Matrix<double,4,8> QP_M_cs, QP_M_cf;
     double QP_alpha, QP_beta;
+
+    int qpStatus{0};
+    int last_nWSR{0};
+    double last_cpuTime{0};
 
     void setModelPara(double mIn, Eigen::Matrix<double,3,3> &Iin,double miuIn);
     void set_state(double* xCoM, double*  vCoM, double* pe, double* eul, double* omegaW);
