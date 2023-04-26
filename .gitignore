@@ -36,3 +36,7 @@ cmake-build-debug/
 cmake-build-release/
 
 OutputData.txt
+
+qpOutPut.png
+
+robotState.png

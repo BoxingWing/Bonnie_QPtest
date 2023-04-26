@@ -2,8 +2,10 @@
 #include "WBC_srb.h"
 #include "quill/Quill.h"
 #include "FileOperator.h"
-
+#include "Pinocchio_Utilities.h"
 FileOperator fileRW("../StateData.txt");
+
+Pinocchio_Utilities pinLib("../BonnieURDF_latest.urdf");
 
 int main()
 {
@@ -20,8 +22,11 @@ int main()
     Ig<<0.334168,-9.95633e-5,-0.0238023,
         -9.95633e-5,0.225661,-0.000164969,
         -0.0238023,-0.000164969,0.13379;
+    
     double xCoM[3],vCoM[3],pe[6],eul[3],omegaW[3],legInd[2],xd[3],Euld[3],dx_d[3], w_d[3];
     double legIndPhase[2];
+    double qr[5],ql[5],qPas_r[2],qPas_l[2];
+
     xCoM[0]=0;xCoM[0]=0;xCoM[2]=0.5;
     vCoM[0]=0;vCoM[1]=0;vCoM[2]=0;
     pe[0]=0;pe[1]=-0.0823955;pe[2]=0;pe[3]=0;pe[4]=0.0824522;pe[5]=0;
@@ -44,20 +49,6 @@ int main()
     wbc_Controller.K_wp<<200,200,200;
     wbc_Controller.K_wd<<30,30,30;
 
-//    xCoM[0]=0;xCoM[0]=0;xCoM[2]=0.59;
-//    wbc_Controller.setModelPara(14,Ig,0.5);
-//    wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaW);
-//    wbc_Controller.setLegState(legIndPhase);
-//    wbc_Controller.get_ddX_ddw(xd, dx_d, Euld, w_d);
-//    wbc_Controller.runQP();
-//
-//    xCoM[0]=0;xCoM[0]=0;xCoM[2]=0.599;
-//    wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaW);
-//    wbc_Controller.setLegState(legIndPhase);
-//    wbc_Controller.get_ddX_ddw(xd, dx_d, Euld, w_d);
-//    wbc_Controller.runQP();
-
-    int count=0;
     wbc_Controller.setModelPara(14,Ig,0.5);
     for (int i = 0; i < fileRW.getTotalLine(); i++) {
         fileRW.getNewLine();
@@ -84,6 +75,20 @@ int main()
         omegaW[0]=fileRW.values[19];
         omegaW[1]=fileRW.values[20];
         omegaW[2]=fileRW.values[21];
+        qr[0]=fileRW.values[22];
+        qr[1]=fileRW.values[23];
+        qr[2]=fileRW.values[24];
+        qr[3]=fileRW.values[25];
+        qr[4]=fileRW.values[26];
+        qPas_r[0]=fileRW.values[27];
+        qPas_r[1]=fileRW.values[28];
+        ql[0]=fileRW.values[29];
+        ql[1]=fileRW.values[30];
+        ql[2]=fileRW.values[31];
+        ql[3]=fileRW.values[32];
+        ql[4]=fileRW.values[33];
+        qPas_l[0]=fileRW.values[34];
+        qPas_l[1]=fileRW.values[35];
 
         wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaW);
         wbc_Controller.setLegState(legIndPhase);
@@ -91,6 +96,20 @@ int main()
         if (i*0.001>2.1)
             wbc_Controller.runQP();
 
+        pinLib.setJointAngle(qr,ql,qPas_r,qPas_l);
+        pinLib.computeJac();
+
+        Eigen::Matrix<double,4,1> WrenchR, WrenchL;
+        WrenchR<<-wbc_Controller.uNow.block<4,1>(0,0);
+        WrenchL<<-wbc_Controller.uNow.block<4,1>(4,0);
+
+        Eigen::Matrix<double,5,1> tauR,tauL;
+        tauR=pinLib.J_R.transpose()*WrenchR;
+        tauL=pinLib.J_L.transpose()*WrenchL;
+
+        Eigen::Matrix<double,5,1> IcmdR,IcmdL;
+        IcmdR<<pinLib.M10015_T2I(tauR(0)),pinLib.M8016_T2I(tauR(1)),pinLib.M8016_T2I(tauR(2)),pinLib.M10015_T2I(tauR(3)),0;
+        IcmdL<<pinLib.M10015_T2I(tauL(0)),pinLib.M8016_T2I(tauL(1)),pinLib.M8016_T2I(tauL(2)),pinLib.M10015_T2I(tauL(3)),0;
 
         // output data
         tmpValue.clear();
@@ -107,6 +126,26 @@ int main()
         tmpValue.push_back(legInd[1]);
         tmpValue.push_back(wbc_Controller.last_nWSR);
         tmpValue.push_back(wbc_Controller.last_cpuTime);
+        tmpValue.push_back(tauR(0));
+        tmpValue.push_back(tauR(1));
+        tmpValue.push_back(tauR(2));
+        tmpValue.push_back(tauR(3));
+        tmpValue.push_back(tauR(4));
+        tmpValue.push_back(tauL(0));
+        tmpValue.push_back(tauL(1));
+        tmpValue.push_back(tauL(2));
+        tmpValue.push_back(tauL(3));
+        tmpValue.push_back(tauL(4));
+        tmpValue.push_back(IcmdR(0));
+        tmpValue.push_back(IcmdR(1));
+        tmpValue.push_back(IcmdR(2));
+        tmpValue.push_back(IcmdR(3));
+        tmpValue.push_back(IcmdR(4));
+        tmpValue.push_back(IcmdL(0));
+        tmpValue.push_back(IcmdL(1));
+        tmpValue.push_back(IcmdL(2));
+        tmpValue.push_back(IcmdL(3));
+        tmpValue.push_back(IcmdL(4));
 
         tmpStr = fmt::format("{:.5f}", fmt::join(tmpValue, " "));
         LOG_INFO(dl, "{}", tmpStr);
@@ -118,41 +157,3 @@ int main()
 
     return 0;
 }
-
-
-//int main( )
-//{
-//    USING_NAMESPACE_QPOASES
-//
-//    /* Setup data of first QP. */
-//    real_t H[2*2] = {2.0, -2, -2, 4 };
-//    real_t A[2*2] = {2, 1.0, 1.0,-4 };
-//    real_t g[2] = { -4, 0 };
-//    real_t lb[2] = { 0.0, 0.0 };
-//    //real_t ub[2] = { 20.0, 20.0 };
-//    //real_t lbA[2] = { -100.0 ,-100};
-//    real_t ubA[2] = { 6.0 ,0};
-//
-//    /* Setting up QProblem object. */
-//    QProblem example( 2,2 );
-//
-//    Options options;
-//    example.setOptions( options );
-//
-//    /* Solve first QP. */
-//    int_t nWSR = 10;
-//    example.init( H,g,A,lb,NULL,NULL,ubA, nWSR);//没有约束，或者约束边界值不存在，则可以使用NULL
-//
-//    /* Get and print solution of first QP. */
-//    real_t xOpt[2];
-//    real_t yOpt[2+2];
-//    example.getPrimalSolution( xOpt );
-//    example.getDualSolution( yOpt );
-//    printf( "\nxOpt = [ %e, %e ];  yOpt = [ %e, %e, %e , %e];  objVal = %e\n\n",
-//            xOpt[0],xOpt[1],yOpt[0],yOpt[1],yOpt[2],yOpt[3],example.getObjVal() );
-//
-//    example.printOptions();
-//    example.printProperties();
-//    //getGlobalMessageHandler()->listAllMessages();
-//    return 0;
-//}

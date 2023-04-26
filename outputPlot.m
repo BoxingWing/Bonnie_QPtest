@@ -13,6 +13,10 @@ omegaW=stateData(:,20:22);
 
 last_nWSR=dataOut(:,11);
 last_cpuTime=dataOut(:,12);
+tauR=dataOut(:,13:17);
+tauL=dataOut(:,18:22);
+IcmdR=dataOut(:,23:27);
+IcmdL=dataOut(:,28:32);
 
 time=(1:1:length(dataOut(:,1)))*0.001;
 
@@ -63,6 +67,33 @@ ylabel('nWSR');
 subplot(2,1,2)
 plot(time,last_cpuTime);
 ylabel('cpuTime');
+
+figure();
+subplot(2,1,1)
+plot(time,tauR);
+legend('m1','m2','m3','m4','m5')
+ylabel('Rleg torque')
+subplot(2,1,2)
+plot(time,tauL);
+legend('m1','m2','m3','m4','m5')
+ylabel('Lleg torque')
+
+
+figure();
+subplot(2,1,1)
+plot(time,IcmdR);
+legend('m1','m2','m3','m4','m5')
+ylabel('Rleg Icmd')
+subplot(2,1,2)
+plot(time,IcmdL);
+legend('m1','m2','m3','m4','m5')
+ylabel('Lleg Icmd')
+
+
+
+
+
+
 
 
 
