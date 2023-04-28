@@ -19,13 +19,14 @@ int main()
 
     WBC_srb wbc_Controller;
     Eigen::Matrix<double,3,3> Ig;
-    Ig<<0.334168,-9.95633e-5,-0.0238023,
-        -9.95633e-5,0.225661,-0.000164969,
-        -0.0238023,-0.000164969,0.13379;
+    Ig<<0.523524,3.19194e-5,-0.0279089,
+        3.19194e-5,0.393347,-0.000262413,
+        -0.0279089,-0.000262413,0.21856;
     
     double xCoM[3],vCoM[3],pe[6],eul[3],omegaW[3],legInd[2],xd[3],Euld[3],dx_d[3], w_d[3];
     double legIndPhase[2];
     double qr[5],ql[5],qPas_r[2],qPas_l[2];
+    double xCoMOff[3];
 
     xCoM[0]=0;xCoM[0]=0;xCoM[2]=0.5;
     vCoM[0]=0;vCoM[1]=0;vCoM[2]=0;
@@ -98,6 +99,9 @@ int main()
 
         pinLib.setJointAngle(qr,ql,qPas_r,qPas_l);
         pinLib.computeJac();
+        xCoMOff[0]=pinLib.pCoM(0);
+        xCoMOff[1]=pinLib.pCoM(1);
+        xCoMOff[2]=pinLib.pCoM(2);
 
         Eigen::Matrix<double,4,1> WrenchR, WrenchL;
         WrenchR<<-wbc_Controller.uNow.block<4,1>(0,0);
@@ -146,6 +150,10 @@ int main()
         tmpValue.push_back(IcmdL(2));
         tmpValue.push_back(IcmdL(3));
         tmpValue.push_back(IcmdL(4));
+        tmpValue.push_back(xCoMOff[0]);
+        tmpValue.push_back(xCoMOff[1]);
+        tmpValue.push_back(xCoMOff[2]);
+
 
         tmpStr = fmt::format("{:.5f}", fmt::join(tmpValue, " "));
         LOG_INFO(dl, "{}", tmpStr);

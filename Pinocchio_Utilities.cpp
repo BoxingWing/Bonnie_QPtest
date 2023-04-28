@@ -9,6 +9,9 @@ Pinocchio_Utilities::Pinocchio_Utilities(std::string urdfName) {
     pinocchio::JointModelFreeFlyer root_joint;
     pinocchio::urdf::buildModel(urdfName,root_joint,model_Bonnie_Dynamic);
     qB_urdf.setZero();
+    pCoM.setZero();
+    pBaseLink.setZero();
+    BaseQuat<<0,0,0,1;
 }
 
 void Pinocchio_Utilities::setJointAngle(double *qr, double *ql, double *qPas_r, double *qPas_l) {
@@ -51,17 +54,43 @@ void Pinocchio_Utilities::computeJac() {
     J_R=J_R_tmp*J_trans;
     pe_L=data_B.oMi[l_ankle_Joint].translation();
     pe_R=data_B.oMi[r_ankle_Joint].translation();
+
+    pinocchio::Data data_B_d(model_Bonnie_Dynamic);
+    Eigen::Matrix<double,21,1> qB_urdf_dynamic;
+    qB_urdf_dynamic.block<3,1>(0,0)=pBaseLink;
+    qB_urdf_dynamic.block<4,1>(3,0)=BaseQuat;
+    qB_urdf_dynamic.block<14,1>(7,0)=qB_urdf;
+    pinocchio::centerOfMass(model_Bonnie_Dynamic,data_B_d,qB_urdf_dynamic);
+    pCoM=data_B_d.com[0];
 }
 
 void Pinocchio_Utilities::computeIg() {
-    pinocchio::Data data_B(model_Bonnie_Static);
-    auto r_ankle_Joint=model_Bonnie_Static.getJointId("r_ankle_joint");
-    auto l_ankle_Joint=model_Bonnie_Static.getJointId("l_ankle_joint");
-    Eigen::VectorXd v_B = Eigen::VectorXd::Ones(model_Bonnie_Static.nv)*0;
-    pinocchio::ccrba(model_Bonnie_Static,data_B,qB_urdf,v_B);
+    pinocchio::Data data_B(model_Bonnie_Dynamic);
+    auto r_ankle_Joint=model_Bonnie_Dynamic.getJointId("r_ankle_joint");
+    auto l_ankle_Joint=model_Bonnie_Dynamic.getJointId("l_ankle_joint");
+    Eigen::VectorXd v_B = Eigen::VectorXd::Ones(model_Bonnie_Dynamic.nv)*0;
+    Eigen::Matrix<double,21,1> qB_urdf_dynamic;
+    qB_urdf_dynamic.block<3,1>(0,0)=pBaseLink;
+    qB_urdf_dynamic.block<4,1>(3,0)=BaseQuat;
+    qB_urdf_dynamic.block<14,1>(7,0)=qB_urdf;
+    pinocchio::ccrba(model_Bonnie_Dynamic,data_B,qB_urdf_dynamic,v_B);
     Ig=data_B.Ig.inertia().matrix();
+    pCoM=data_B.com[0];
     pe_L=data_B.oMi[l_ankle_Joint].translation();
     pe_R=data_B.oMi[r_ankle_Joint].translation();
+    pinocchio::computeTotalMass(model_Bonnie_Dynamic,data_B);
+    totalMass=data_B.mass[0];
+}
+
+void Pinocchio_Utilities::computeG() {
+    pinocchio::Data data(model_Bonnie_Dynamic);
+    Eigen::Matrix<double,21,1> qB_urdf_dynamic;
+    qB_urdf_dynamic.block<3,1>(0,0)=pBaseLink;
+    qB_urdf_dynamic.block<4,1>(3,0)=BaseQuat;
+    qB_urdf_dynamic.block<14,1>(7,0)=qB_urdf;
+    pinocchio::computeGeneralizedGravity(model_Bonnie_Dynamic,data,qB_urdf_dynamic);
+    Gq=data.g;
+    //pinocchio::crba(model_Bonnie_Static,data,q_B);
 }
 
 Eigen::Matrix<double, 3, 3> Pinocchio_Utilities::eul2Rot(double roll, double pitch, double yaw) {
@@ -76,13 +105,6 @@ Eigen::Matrix<double, 3, 3> Pinocchio_Utilities::eul2Rot(double roll, double pit
         0,cos(roll),-sin(roll),
         0,sin(roll),cos(roll);
     return Rz*Ry*Rx;
-}
-
-void Pinocchio_Utilities::computeG() {
-    pinocchio::Data data(model_Bonnie_Static);
-    pinocchio::computeGeneralizedGravity(model_Bonnie_Static,data,qB_urdf);
-    Gq=data.g;
-    //pinocchio::crba(model_Bonnie_Static,data,q_B);
 }
 
 double Pinocchio_Utilities::M8016_I2T(double Id)

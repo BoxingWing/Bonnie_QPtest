@@ -15,12 +15,14 @@ private:
     qpOASES::QProblem wbc_srb_QP;
 
     Eigen::Matrix<double,3,3> R_cur;
-    Eigen::Vector3d xCoM_cur, vCoM_cur, w_cur;
+    Eigen::Vector3d pCoM_cur, vCoM_cur, w_cur;
     Eigen::Matrix<double,6,1> pe_cur;
     double m,miu;
     Eigen::Matrix3d Ig;
     Eigen::Vector3d g_vec;
     Eigen::Matrix<double,6,4> M_c;
+    Eigen::Matrix<double,3,1> pCoM_Off_L{0.0455025,0.000187389,-0.0576864};
+    Eigen::Matrix<double,3,1> pCoM_Off_W;
 
     // obj: (1/2)x'Hx+x'g
     // s.t. lbA<=Ax<=ubA

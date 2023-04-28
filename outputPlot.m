@@ -17,6 +17,7 @@ tauR=dataOut(:,13:17);
 tauL=dataOut(:,18:22);
 IcmdR=dataOut(:,23:27);
 IcmdL=dataOut(:,28:32);
+pCoMOff=dataOut(:,33:35);
 
 time=(1:1:length(dataOut(:,1)))*0.001;
 

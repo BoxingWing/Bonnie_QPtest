@@ -69,11 +69,13 @@ WBC_srb::WBC_srb():wbc_srb_QP(8,12) {
 
 void WBC_srb::set_state(double *xCoM, double *vCoM,double *pe, double *eul, double *omegaW) {
     for (int i=0;i<3;i++)
-    {xCoM_cur(i)=xCoM[i]; vCoM_cur(i)=vCoM[i];}
+    {pCoM_cur(i)=xCoM[i]; vCoM_cur(i)=vCoM[i];}
     for (int i=0;i<6;i++)
         pe_cur(i)=pe[i];
     R_cur= Euler2Rot(eul[0],eul[1],eul[2]);
     w_cur<<omegaW[0],omegaW[1],omegaW[2];
+
+    pCoM_Off_W=R_cur*pCoM_Off_L;
 }
 
 // right first
@@ -118,7 +120,7 @@ void WBC_srb::get_ddX_ddw(double *xd, double *dx_d, double *Euld, double *w_d) {
     Vector3d xd_vec, dxd_vec;
     xd_vec<<xd[0],xd[1],xd[2];
     dxd_vec<<dx_d[0],dx_d[1],dx_d[2];
-    ddx_d=K_xp.asDiagonal()*(xd_vec-xCoM_cur)+K_xd.asDiagonal()*(dxd_vec-vCoM_cur);
+    ddx_d=K_xp.asDiagonal()*(xd_vec-pCoM_cur)+K_xd.asDiagonal()*(dxd_vec-vCoM_cur);
     Matrix3d Rd;
     Rd= Euler2Rot(Euld[0],Euld[1],Euld[2]);
     Vector3d theta_delta,wd_vec;
@@ -130,8 +132,8 @@ void WBC_srb::get_ddX_ddw(double *xd, double *dx_d, double *Euld, double *w_d) {
 void WBC_srb::runQP() {
 
     Matrix<double,3,1> tmp;
-    model_A.block<3,3>(3,0)= crossMatrix(pe_cur.block<3,1>(0,0)-xCoM_cur);
-    model_A.block<3,3>(3,4)= crossMatrix(pe_cur.block<3,1>(3,0)-xCoM_cur);
+    model_A.block<3,3>(3,0)= crossMatrix(pe_cur.block<3,1>(0,0)-pCoM_cur+pCoM_Off_W);
+    model_A.block<3,3>(3,4)= crossMatrix(pe_cur.block<3,1>(3,0)-pCoM_cur+pCoM_Off_W);
     model_bd.block<3,1>(0,0)=m*(ddx_d-g_vec);
     model_bd.block<3,1>(3,0)=R_cur*Ig*R_cur.transpose()*ddw_d;
 
