@@ -18,6 +18,10 @@ tauL=dataOut(:,18:22);
 IcmdR=dataOut(:,23:27);
 IcmdL=dataOut(:,28:32);
 pCoMOff=dataOut(:,33:35);
+ddx_d_cmd=dataOut(:,36:38);
+ddx_d_qpRes=dataOut(:,39:41);
+ddw_d_cmd=dataOut(:,42:44);
+ddw_d_qpRes=dataOut(:,45:47);
 
 time=(1:1:length(dataOut(:,1)))*0.001;
 
@@ -90,6 +94,21 @@ plot(time,IcmdL);
 legend('m1','m2','m3','m4','m5')
 ylabel('Lleg Icmd')
 
+figure();
+for i=1:1:3
+subplot(2,3,i)
+plot(time,ddx_d_cmd(:,i));
+hold on;
+plot(time,ddx_d_qpRes(:,i));
+legend('ddx-d-cmd','ddx-d-qp')
+end
+for i=1:1:3
+subplot(2,3,i+3)
+plot(time,ddw_d_cmd(:,i));
+hold on;
+plot(time,ddw_d_qpRes(:,i));
+legend('ddw-d-cmd','ddw-d-qp')
+end
 
 
 

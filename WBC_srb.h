@@ -18,10 +18,10 @@ private:
     Eigen::Vector3d pCoM_cur, vCoM_cur, w_cur;
     Eigen::Matrix<double,6,1> pe_cur;
     double m,miu;
-    Eigen::Matrix3d Ig;
+    Eigen::Matrix3d Ig,IgInv;
     Eigen::Vector3d g_vec;
     Eigen::Matrix<double,6,4> M_c;
-    Eigen::Matrix<double,3,1> pCoM_Off_L{0.0455025,0.000187389,-0.0576864};
+    const Eigen::Matrix<double,3,1> pCoM_Off_L{0.0455025,0.000187389,-0.0576864};
     Eigen::Matrix<double,3,1> pCoM_Off_W;
 
     // obj: (1/2)x'Hx+x'g
@@ -45,6 +45,7 @@ public:
     Eigen::Matrix<double,3,1> K_xp, K_xd, K_wp, K_wd;
     Eigen::Matrix<double,3,1> ddx_d,ddw_d;
     Eigen::Matrix<double,8,1> uOld, uNow;
+    Eigen::Matrix<double,3,1> ddx_d_qpRes,ddw_d_qpRes;
 
     Eigen::Matrix<double,6,8> model_A;
     Eigen::Matrix<double,6,1> model_bd;

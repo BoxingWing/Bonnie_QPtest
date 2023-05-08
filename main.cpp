@@ -40,13 +40,13 @@ int main()
     w_d[0]=0;w_d[1]=0;w_d[2]=0;
     legIndPhase[0]=1;legIndPhase[1]=1;
 
-    wbc_Controller.QP_S<<20,20,50,450,450,450;
-    wbc_Controller.QP_Wp<<10,10,4,10,10,10,4,10;
+    wbc_Controller.QP_S<<1,2,10,450,450,100;
+    wbc_Controller.QP_Wp<<10,10,10,10,10,10,10,10;
     wbc_Controller.QP_Wc<<3,3,3,3,3,3,3,3;
-    wbc_Controller.QP_alpha=0.001;
-    wbc_Controller.QP_beta=0.1;
+    wbc_Controller.QP_alpha=0.1;
+    wbc_Controller.QP_beta=0.01;
     wbc_Controller.K_xp<<150,150,150;
-    wbc_Controller.K_wd<<25,25,25;
+    wbc_Controller.K_xd<<25,25,25;
     wbc_Controller.K_wp<<200,200,200;
     wbc_Controller.K_wd<<30,30,30;
 
@@ -153,6 +153,19 @@ int main()
         tmpValue.push_back(xCoMOff[0]);
         tmpValue.push_back(xCoMOff[1]);
         tmpValue.push_back(xCoMOff[2]);
+        tmpValue.push_back(wbc_Controller.ddx_d(0));
+        tmpValue.push_back(wbc_Controller.ddx_d(1));
+        tmpValue.push_back(wbc_Controller.ddx_d(2));
+        tmpValue.push_back(wbc_Controller.ddx_d_qpRes(0));
+        tmpValue.push_back(wbc_Controller.ddx_d_qpRes(1));
+        tmpValue.push_back(wbc_Controller.ddx_d_qpRes(2));
+        tmpValue.push_back(wbc_Controller.ddw_d(0));
+        tmpValue.push_back(wbc_Controller.ddw_d(1));
+        tmpValue.push_back(wbc_Controller.ddw_d(2));
+        tmpValue.push_back(wbc_Controller.ddw_d_qpRes(0));
+        tmpValue.push_back(wbc_Controller.ddw_d_qpRes(1));
+        tmpValue.push_back(wbc_Controller.ddw_d_qpRes(2));
+
 
 
         tmpStr = fmt::format("{:.5f}", fmt::join(tmpValue, " "));

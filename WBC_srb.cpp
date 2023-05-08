@@ -111,8 +111,9 @@ void WBC_srb::setLegState(double *legInd) {
 
 void WBC_srb::setModelPara(double mIn, Eigen::Matrix<double, 3, 3> &Iin,double miuIn) {
     m=mIn;
-    Ig=Iin;
+    Ig=Iin*m/13.0;
     miu=miuIn;
+    IgInv=Ig.inverse();
     M_c.block<4,1>(0,2)<<miu,miu,miu,miu;
 }
 
@@ -132,8 +133,8 @@ void WBC_srb::get_ddX_ddw(double *xd, double *dx_d, double *Euld, double *w_d) {
 void WBC_srb::runQP() {
 
     Matrix<double,3,1> tmp;
-    model_A.block<3,3>(3,0)= crossMatrix(pe_cur.block<3,1>(0,0)-pCoM_cur+pCoM_Off_W);
-    model_A.block<3,3>(3,4)= crossMatrix(pe_cur.block<3,1>(3,0)-pCoM_cur+pCoM_Off_W);
+    model_A.block<3,3>(3,0)= crossMatrix(pe_cur.block<3,1>(0,0)-(pCoM_cur+pCoM_Off_W));
+    model_A.block<3,3>(3,4)= crossMatrix(pe_cur.block<3,1>(3,0)-(pCoM_cur+pCoM_Off_W));
     model_bd.block<3,1>(0,0)=m*(ddx_d-g_vec);
     model_bd.block<3,1>(3,0)=R_cur*Ig*R_cur.transpose()*ddw_d;
 
@@ -176,7 +177,7 @@ void WBC_srb::runQP() {
     last_nWSR=nWSR;
     last_cpuTime=cpu_time;
 
-    //std::cout<<qpStatus<<std::endl;
+//    std::cout<<qpStatus<<std::endl;
 
 //    if (res==qpOASES::SUCCESSFUL_RETURN)
 //        std::cout<<"successful_return"<<std::endl;
@@ -194,6 +195,11 @@ void WBC_srb::runQP() {
             xOpt[5],xOpt[6],xOpt[7];
     uOld=uNow;
     wbc_srb_QP.reset();
+
+    Matrix<double,6,1> tmpRes;
+    tmpRes=model_A*uNow;
+    ddx_d_qpRes=tmpRes.block<3,1>(0,0)/m+g_vec;
+    ddw_d_qpRes=R_cur*IgInv*R_cur.transpose()*tmpRes.block<3,1>(3,0);
 
     //-------- for debugging --------------
 //    Matrix<double,12,1> BoundRes;
