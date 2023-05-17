@@ -12,6 +12,7 @@
 class WBC_srb {
 
 private:
+    const double dt=0.001;
     qpOASES::QProblem wbc_srb_QP;
 
     Eigen::Matrix<double,3,3> R_cur;
@@ -23,6 +24,12 @@ private:
     Eigen::Matrix<double,6,4> M_c;
     const Eigen::Matrix<double,3,1> pCoM_Off_L{0.0455025,0.000187389,-0.0576864};
     Eigen::Matrix<double,3,1> pCoM_Off_W;
+
+    Eigen::Matrix<double,3,1> pCoM_pred;
+    Eigen::Matrix<double,6,1> pe_pred;
+    Eigen::Matrix<double,3,3> R_pred;
+
+    Eigen::Matrix<double,3,3> RodForm(Eigen::Vector3d omegaIn);
 
     // obj: (1/2)x'Hx+x'g
     // s.t. lbA<=Ax<=ubA
@@ -46,6 +53,7 @@ public:
     Eigen::Matrix<double,3,1> ddx_d,ddw_d;
     Eigen::Matrix<double,8,1> uOld, uNow;
     Eigen::Matrix<double,3,1> ddx_d_qpRes,ddw_d_qpRes;
+    Eigen::Matrix<double,6,1> pe_Body_pred, pe_Body_Old, pe_Body_delta, pe_Body_Accumu;
 
     Eigen::Matrix<double,6,8> model_A;
     Eigen::Matrix<double,6,1> model_bd;

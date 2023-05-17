@@ -165,7 +165,24 @@ int main()
         tmpValue.push_back(wbc_Controller.ddw_d_qpRes(0));
         tmpValue.push_back(wbc_Controller.ddw_d_qpRes(1));
         tmpValue.push_back(wbc_Controller.ddw_d_qpRes(2));
-
+        tmpValue.push_back(wbc_Controller.pe_Body_Old(0));
+        tmpValue.push_back(wbc_Controller.pe_Body_Old(1));
+        tmpValue.push_back(wbc_Controller.pe_Body_Old(2));
+        tmpValue.push_back(wbc_Controller.pe_Body_Old(3));
+        tmpValue.push_back(wbc_Controller.pe_Body_Old(4));
+        tmpValue.push_back(wbc_Controller.pe_Body_Old(5));
+        tmpValue.push_back(wbc_Controller.pe_Body_delta(0));
+        tmpValue.push_back(wbc_Controller.pe_Body_delta(1));
+        tmpValue.push_back(wbc_Controller.pe_Body_delta(2));
+        tmpValue.push_back(wbc_Controller.pe_Body_delta(3));
+        tmpValue.push_back(wbc_Controller.pe_Body_delta(4));
+        tmpValue.push_back(wbc_Controller.pe_Body_delta(5));
+        tmpValue.push_back(wbc_Controller.pe_Body_Accumu(0));
+        tmpValue.push_back(wbc_Controller.pe_Body_Accumu(1));
+        tmpValue.push_back(wbc_Controller.pe_Body_Accumu(2));
+        tmpValue.push_back(wbc_Controller.pe_Body_Accumu(3));
+        tmpValue.push_back(wbc_Controller.pe_Body_Accumu(4));
+        tmpValue.push_back(wbc_Controller.pe_Body_Accumu(5));
 
 
         tmpStr = fmt::format("{:.5f}", fmt::join(tmpValue, " "));

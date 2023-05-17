@@ -22,6 +22,9 @@ ddx_d_cmd=dataOut(:,36:38);
 ddx_d_qpRes=dataOut(:,39:41);
 ddw_d_cmd=dataOut(:,42:44);
 ddw_d_qpRes=dataOut(:,45:47);
+pe_Body_Old=dataOut(:,48:53);
+pe_Body_delta=dataOut(:,54:59);
+pe_Body_Accumu=dataOut(:,60:65);
 
 time=(1:1:length(dataOut(:,1)))*0.001;
 
@@ -109,6 +112,33 @@ hold on;
 plot(time,ddw_d_qpRes(:,i));
 legend('ddw-d-cmd','ddw-d-qp')
 end
+
+figure();
+subplot(2,1,1)
+plot(time,pe_Body_Old(:,1:3));
+hold on;
+plot(time,pe_Body_delta(:,1:3)+pe_Body_Old(:,1:3));
+legend('peB-Old-x','peB-Old-y','peB-Old-z','peB-New-x','peB-New-y','peB-New-z');
+subplot(2,1,2)
+plot(time,pe_Body_Old(:,4:6));
+hold on;
+plot(time,pe_Body_delta(:,4:6)+pe_Body_Old(:,4:6));
+legend('peB-Old-x','peB-Old-y','peB-Old-z','peB-New-x','peB-New-y','peB-New-z');
+
+figure();
+subplot(2,1,1)
+plot(time,pe_Body_Old(:,1:3));
+hold on;
+plot(time,pe_Body_Accumu(:,1:3)+pe_Body_Old(:,1:3));
+legend('peB-Old-x','peB-Old-y','peB-Old-z','peB-New-x','peB-New-y','peB-New-z');
+subplot(2,1,2)
+plot(time,pe_Body_Old(:,4:6));
+hold on;
+plot(time,pe_Body_Accumu(:,4:6)+pe_Body_Old(:,4:6));
+legend('peB-Old-x','peB-Old-y','peB-Old-z','peB-New-x','peB-New-y','peB-New-z');
+
+
+
 
 
 

@@ -65,6 +65,8 @@ WBC_srb::WBC_srb():wbc_srb_QP(8,12) {
 //    options.setToReliable();
     options.printLevel=qpOASES::PL_NONE;
     wbc_srb_QP.setOptions(options);
+
+    pe_Body_Accumu.setZero();
 };
 
 void WBC_srb::set_state(double *xCoM, double *vCoM,double *pe, double *eul, double *omegaW) {
@@ -201,6 +203,43 @@ void WBC_srb::runQP() {
     ddx_d_qpRes=tmpRes.block<3,1>(0,0)/m+g_vec;
     ddw_d_qpRes=R_cur*IgInv*R_cur.transpose()*tmpRes.block<3,1>(3,0);
 
+    pCoM_pred=pCoM_cur+vCoM_cur*dt+ddw_d_qpRes*0.5*dt*dt;
+    Vector3d omegaPred;
+    omegaPred=w_cur*dt+ddw_d_qpRes*0.5*dt*dt;
+    R_pred= RodForm(omegaPred)*R_cur;
+
+    pe_Body_pred.block<3,1>(0,0)=R_pred.transpose()*(pe_cur.block<3,1>(0,0)-pCoM_pred);
+    pe_Body_pred.block<3,1>(3,0)=R_pred.transpose()*(pe_cur.block<3,1>(3,0)-pCoM_pred);
+    pe_Body_Old.block<3,1>(0,0)=R_cur.transpose()*(pe_cur.block<3,1>(0,0)-pCoM_cur);
+    pe_Body_Old.block<3,1>(3,0)=R_cur.transpose()*(pe_cur.block<3,1>(3,0)-pCoM_cur);
+    pe_Body_delta=pe_Body_pred-pe_Body_Old;
+
+    //pe_Body_Accumu+=pe_Body_delta;
+
+    if (legInStance[0]<0.5)
+    {
+        if (pe_Body_Accumu.block<3,1>(0,0).norm()<1e-5)
+            pe_Body_Accumu.block<3,1>(0,0).setZero();
+        else
+            pe_Body_Accumu.block<3,1>(0,0)*=0.95;
+    }
+    else
+    {
+        pe_Body_Accumu.block<3,1>(0,0)+=pe_Body_delta.block<3,1>(0,0);
+    }
+
+    if (legInStance[1]<0.5)
+    {
+        if (pe_Body_Accumu.block<3,1>(3,0).norm()<1e-5)
+            pe_Body_Accumu.block<3,1>(3,0).setZero();
+        else
+            pe_Body_Accumu.block<3,1>(3,0)*=0.95;
+    }
+    else
+    {
+        pe_Body_Accumu.block<3,1>(3,0)+=pe_Body_delta.block<3,1>(3,0);
+    }
+
     //-------- for debugging --------------
 //    Matrix<double,12,1> BoundRes;
 //
@@ -309,4 +348,15 @@ Matrix<double,3,3> WBC_srb::crossMatrix(Eigen::Vector3d omega) {
     R(2, 1) = omega(0);
 
     return R;
+}
+
+Eigen::Matrix<double, 3, 3> WBC_srb::RodForm(Eigen::Vector3d omegaIn) {
+    double norm=omegaIn.norm();
+    if (norm<1e-6)
+        return Matrix3d::Identity();
+    Matrix3d res,crossW;
+    res.setIdentity();
+    crossW=crossMatrix(omegaIn/norm);
+    res=res+sin(norm)* crossW+(1-cos(norm))*crossW*crossW;
+    return res;
 }
