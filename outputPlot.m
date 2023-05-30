@@ -29,15 +29,19 @@ pe_Body_Accumu=dataOut(:,60:65);
 time=(1:1:length(dataOut(:,1)))*0.001;
 
 figure();
-subplot(3,1,1)
+subplot(4,1,1)
 plot(time,xCoM);legend('pCoMx','pCoMy','pCoMz');
 ylabel('position (m)');
-subplot(3,1,2)
+subplot(4,1,2)
 plot(time,vCoM);legend('vCoMx','vCoMy','vCoMz');
 ylabel('velocity (m/s)');
-subplot(3,1,3)
+subplot(4,1,3)
 plot(time,eul);legend('roll','pitch','yaw');
 ylabel('attitude (rad)')
+subplot(4,1,4)
+plot(time,omegaW);legend('wx','wy','wz');
+ylabel('omegaW (rad/s)')
+
 
 figure();
 subplot(2,1,1)

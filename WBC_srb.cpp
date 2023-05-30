@@ -60,6 +60,7 @@ WBC_srb::WBC_srb():wbc_srb_QP(8,12) {
 
     uOld.setZero();
     uNow.setZero();
+    uOut.setZero();
 
     qpOASES::Options options;
 //    options.setToReliable();
@@ -196,6 +197,7 @@ void WBC_srb::runQP() {
     uNow<<xOpt[0],xOpt[1],xOpt[2],xOpt[3],xOpt[4],
             xOpt[5],xOpt[6],xOpt[7];
     uOld=uNow;
+
     wbc_srb_QP.reset();
 
     Matrix<double,6,1> tmpRes;
@@ -222,10 +224,19 @@ void WBC_srb::runQP() {
             pe_Body_Accumu.block<3,1>(0,0).setZero();
         else
             pe_Body_Accumu.block<3,1>(0,0)*=0.95;
+
+        for (int i=0;i<4;i++)
+        {
+            if (fabs(uOut(i))<1e-5)
+                uOut(i)=0;
+            else
+                uOut(i)*=0.95;
+        }
     }
     else
     {
         pe_Body_Accumu.block<3,1>(0,0)+=pe_Body_delta.block<3,1>(0,0);
+        uOut.block<4,1>(0,0)=uNow.block<4,1>(0,0);
     }
 
     if (legInStance[1]<0.5)
@@ -234,10 +245,19 @@ void WBC_srb::runQP() {
             pe_Body_Accumu.block<3,1>(3,0).setZero();
         else
             pe_Body_Accumu.block<3,1>(3,0)*=0.95;
+
+        for (int i=4;i<8;i++)
+        {
+            if (fabs(uOut(i))<1e-5)
+                uOut(i)=0;
+            else
+                uOut(i)*=0.95;
+        }
     }
     else
     {
         pe_Body_Accumu.block<3,1>(3,0)+=pe_Body_delta.block<3,1>(3,0);
+        uOut.block<4,1>(4,0)=uNow.block<4,1>(4,0);
     }
 
     //-------- for debugging --------------

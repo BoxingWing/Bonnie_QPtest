@@ -45,9 +45,9 @@ int main()
     wbc_Controller.QP_Wc<<3,3,3,3,3,3,3,3;
     wbc_Controller.QP_alpha=0.1;
     wbc_Controller.QP_beta=0.01;
-    wbc_Controller.K_xp<<150,150,150;
-    wbc_Controller.K_xd<<25,25,25;
-    wbc_Controller.K_wp<<200,200,200;
+    wbc_Controller.K_xp<<75,75,75;
+    wbc_Controller.K_xd<<10,10,10;
+    wbc_Controller.K_wp<<300,300,300;
     wbc_Controller.K_wd<<30,30,30;
 
     wbc_Controller.setModelPara(14,Ig,0.5);
@@ -104,8 +104,8 @@ int main()
         xCoMOff[2]=pinLib.pCoM(2);
 
         Eigen::Matrix<double,4,1> WrenchR, WrenchL;
-        WrenchR<<-wbc_Controller.uNow.block<4,1>(0,0);
-        WrenchL<<-wbc_Controller.uNow.block<4,1>(4,0);
+        WrenchR<<-wbc_Controller.uOut.block<4,1>(0,0);
+        WrenchL<<-wbc_Controller.uOut.block<4,1>(4,0);
 
         Eigen::Matrix<double,5,1> tauR,tauL;
         tauR=pinLib.J_R.transpose()*WrenchR;
@@ -118,14 +118,14 @@ int main()
         // output data
         tmpValue.clear();
 
-        tmpValue.push_back(wbc_Controller.uNow(0));
-        tmpValue.push_back(wbc_Controller.uNow(1));
-        tmpValue.push_back(wbc_Controller.uNow(2));
-        tmpValue.push_back(wbc_Controller.uNow(3));
-        tmpValue.push_back(wbc_Controller.uNow(4));
-        tmpValue.push_back(wbc_Controller.uNow(5));
-        tmpValue.push_back(wbc_Controller.uNow(6));
-        tmpValue.push_back(wbc_Controller.uNow(7));
+        tmpValue.push_back(wbc_Controller.uOut(0));
+        tmpValue.push_back(wbc_Controller.uOut(1));
+        tmpValue.push_back(wbc_Controller.uOut(2));
+        tmpValue.push_back(wbc_Controller.uOut(3));
+        tmpValue.push_back(wbc_Controller.uOut(4));
+        tmpValue.push_back(wbc_Controller.uOut(5));
+        tmpValue.push_back(wbc_Controller.uOut(6));
+        tmpValue.push_back(wbc_Controller.uOut(7));
         tmpValue.push_back(legInd[0]);
         tmpValue.push_back(legInd[1]);
         tmpValue.push_back(wbc_Controller.last_nWSR);

@@ -51,7 +51,7 @@ public:
     int legInStance[2]; // right first
     Eigen::Matrix<double,3,1> K_xp, K_xd, K_wp, K_wd;
     Eigen::Matrix<double,3,1> ddx_d,ddw_d;
-    Eigen::Matrix<double,8,1> uOld, uNow;
+    Eigen::Matrix<double,8,1> uOld, uNow, uOut;
     Eigen::Matrix<double,3,1> ddx_d_qpRes,ddw_d_qpRes;
     Eigen::Matrix<double,6,1> pe_Body_pred, pe_Body_Old, pe_Body_delta, pe_Body_Accumu;
 
