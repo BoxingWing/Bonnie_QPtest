@@ -9,6 +9,7 @@ Pinocchio_Utilities::Pinocchio_Utilities(std::string urdfName) {
     pinocchio::JointModelFreeFlyer root_joint;
     pinocchio::urdf::buildModel(urdfName,root_joint,model_Bonnie_Dynamic);
     qB_urdf.setZero();
+    qB_urdf_float.setZero();
     pCoM.setZero();
     pBaseLink.setZero();
     BaseQuat<<0,0,0,1;
@@ -20,6 +21,8 @@ void Pinocchio_Utilities::setJointAngle(double *qr, double *ql, double *qPas_r, 
     qB_urdf(5)=qB_urdf(5)-(-83.31/180*pi);
     qB_urdf(11)=qB_urdf(11)-(-98.66/180*pi);
     qB_urdf(12)=qB_urdf(12)-83.31/180*pi;
+
+    qB_urdf_float.block<14,1>(7,0)=qB_urdf;
 }
 
 void Pinocchio_Utilities::computeJac() {
@@ -52,6 +55,58 @@ void Pinocchio_Utilities::computeJac() {
 
     J_L=J_L_tmp*J_trans;
     J_R=J_R_tmp*J_trans;
+    pe_L=data_B.oMi[l_ankle_Joint].translation();
+    pe_R=data_B.oMi[r_ankle_Joint].translation();
+
+    pinocchio::Data data_B_d(model_Bonnie_Dynamic);
+    Eigen::Matrix<double,21,1> qB_urdf_dynamic;
+    qB_urdf_dynamic.block<3,1>(0,0)=pBaseLink;
+    qB_urdf_dynamic.block<4,1>(3,0)=BaseQuat;
+    qB_urdf_dynamic.block<14,1>(7,0)=qB_urdf;
+    pinocchio::centerOfMass(model_Bonnie_Dynamic,data_B_d,qB_urdf_dynamic);
+    pCoM=data_B_d.com[0];
+}
+
+void Pinocchio_Utilities::computeJac_float(double *eul) {
+
+    Eigen::Matrix<double,3,3> Rcur=eul2Rot(eul[0],eul[1],eul[2]);
+    Eigen::Quaternion<double> quatCur;
+    quatCur=Rcur;
+
+    qB_urdf_float(3)=quatCur.x();
+    qB_urdf_float(4)=quatCur.y();
+    qB_urdf_float(5)=quatCur.z();
+    qB_urdf_float(6)=quatCur.w();
+
+    pinocchio::Data data_B(model_Bonnie_Dynamic);
+    auto r_ankle_Joint=model_Bonnie_Dynamic.getJointId("r_ankle_joint");
+    auto l_ankle_Joint=model_Bonnie_Dynamic.getJointId("l_ankle_joint");
+
+    pinocchio::computeJointJacobians(model_Bonnie_Dynamic,data_B,qB_urdf_float);
+    Eigen::Matrix<double,4,7> J_L_tmp,J_R_tmp;
+    Eigen::Matrix<double,6,20> J_tmp;
+    J_tmp.setZero();
+    pinocchio::getJointJacobian(model_Bonnie_Dynamic,data_B,l_ankle_Joint,pinocchio::LOCAL_WORLD_ALIGNED,J_tmp);
+    J_L_tmp.block<3,7>(0,0)=J_tmp.block<3,7>(0,6);
+    J_L_tmp.row(3)=J_tmp.block<1,7>(5,6);
+    J_tmp.setZero();
+    pinocchio::getJointJacobian(model_Bonnie_Dynamic,data_B,r_ankle_Joint,pinocchio::LOCAL_WORLD_ALIGNED,J_tmp);
+    J_R_tmp.block<3,7>(0,0)=J_tmp.block<3,7>(0,13);
+    J_R_tmp.row(3)=J_tmp.block<1,7>(5,13);
+
+    Eigen::Matrix<double,7,5> J_trans;
+    J_trans.setZero();
+    J_trans(0,0)=1;
+    J_trans(1,1)=1;
+    J_trans(2,2)=1;
+    J_trans(3,3)=1;
+    J_trans(4,3)=1;
+    J_trans(5,3)=-1;
+    J_trans(6,4)=1;
+
+    J_L_float=J_L_tmp*J_trans;
+    J_R_float=J_R_tmp*J_trans;
+
     pe_L=data_B.oMi[l_ankle_Joint].translation();
     pe_R=data_B.oMi[r_ankle_Joint].translation();
 

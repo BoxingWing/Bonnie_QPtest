@@ -11,6 +11,8 @@
 #include "pinocchio/algorithm/centroidal.hpp"
 #include "pinocchio/algorithm/rnea.hpp"
 #include "pinocchio/algorithm/center-of-mass.hpp"
+#include "pinocchio/math/quaternion.hpp"
+#include "Eigen/Geometry"
 
 class Pinocchio_Utilities {
 public:
@@ -18,10 +20,12 @@ public:
     Eigen::VectorXd q_S, q_D;
     Eigen::VectorXd dq_S, dq_D;
     Eigen::Matrix<double,4,5> J_L,J_R;
+    Eigen::Matrix<double,4,5> J_L_float,J_R_float;
     Eigen::Matrix<double,3,3> Ig;
     Eigen::Matrix<double,3,1> pe_L,pe_R;
     Eigen::Matrix<double,20,1> Gq; // generalized gravity term, including fx, fy, fz, taux, tauy, tauz, tauQ1-tauQ14
     Eigen::Matrix<double,14,1> qB_urdf;
+    Eigen::Matrix<double,21,1> qB_urdf_float;
     Eigen::Matrix<double,3,1> pCoM;
     Eigen::Matrix<double,3,1> pBaseLink;    // position of the baselink
     Eigen::Matrix<double,4,1> BaseQuat;    // quaternion of the baselink
@@ -33,6 +37,7 @@ public:
     void setJointAngle(double* qr, double *ql, double *qPas_r, double *qPas_l);
     void computeIg();
     void computeJac();
+    void computeJac_float(double *eul);
     void computeG();
     double M8016_I2T(double Id);
     double M10015_I2T(double Id);
@@ -40,7 +45,7 @@ public:
     double M10015_T2I(double Td);
     double sgn(double in);
 
-    static Eigen::Matrix<double,3,3> eul2Rot(double roll, double pitch, double yaw);
+    Eigen::Matrix<double,3,3> eul2Rot(double roll, double pitch, double yaw);
 };
 
 

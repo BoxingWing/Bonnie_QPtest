@@ -9,6 +9,19 @@ Pinocchio_Utilities pinLib("../BonnieURDF_latest.urdf");
 
 int main()
 {
+//    Eigen::Quaternion<double> quat;
+//    Eigen::Matrix<double,3,3> Rtmp;
+//    Rtmp<<0,0.707107,0.707107,
+//          0,0.707107,-0.707107,
+//          -1,0,0;
+//    quat=Rtmp;
+//
+//    std::cout<<quat.x()<<std::endl;
+//    std::cout<<quat.y()<<std::endl;
+//    std::cout<<quat.z()<<std::endl;
+//    std::cout<<quat.w()<<std::endl;
+//    std::cout<<Rtmp.determinant()<<std::endl;
+
     std::vector<double> tmpValue;
     std::string tmpStr;
     // Get a pointer to the default logger
@@ -22,7 +35,7 @@ int main()
     Ig<<0.523524,3.19194e-5,-0.0279089,
         3.19194e-5,0.393347,-0.000262413,
         -0.0279089,-0.000262413,0.21856;
-    
+
     double xCoM[3],vCoM[3],pe[6],eul[3],omegaW[3],legInd[2],xd[3],Euld[3],dx_d[3], w_d[3];
     double legIndPhase[2];
     double qr[5],ql[5],qPas_r[2],qPas_l[2];
@@ -98,7 +111,9 @@ int main()
             wbc_Controller.runQP();
 
         pinLib.setJointAngle(qr,ql,qPas_r,qPas_l);
-        pinLib.computeJac();
+//        pinLib.computeJac();
+
+        pinLib.computeJac_float(eul);
         xCoMOff[0]=pinLib.pCoM(0);
         xCoMOff[1]=pinLib.pCoM(1);
         xCoMOff[2]=pinLib.pCoM(2);
@@ -108,8 +123,8 @@ int main()
         WrenchL<<-wbc_Controller.uOut.block<4,1>(4,0);
 
         Eigen::Matrix<double,5,1> tauR,tauL;
-        tauR=pinLib.J_R.transpose()*WrenchR;
-        tauL=pinLib.J_L.transpose()*WrenchL;
+        tauR=pinLib.J_R_float.transpose()*WrenchR;
+        tauL=pinLib.J_L_float.transpose()*WrenchL;
 
         Eigen::Matrix<double,5,1> IcmdR,IcmdL;
         IcmdR<<pinLib.M10015_T2I(tauR(0)),pinLib.M8016_T2I(tauR(1)),pinLib.M8016_T2I(tauR(2)),pinLib.M10015_T2I(tauR(3)),0;
@@ -188,10 +203,10 @@ int main()
         tmpStr = fmt::format("{:.5f}", fmt::join(tmpValue, " "));
         LOG_INFO(dl, "{}", tmpStr);
     }
-//    std::cout<<wbc_Controller.ddx_d.transpose()<<std::endl;
-//    std::cout<<wbc_Controller.model_A<<std::endl;
-//    std::cout<<wbc_Controller.model_bd<<std::endl;
-//    std::cout<<wbc_Controller.uNow.transpose()<<std::endl;
+    std::cout<<wbc_Controller.ddx_d.transpose()<<std::endl;
+    std::cout<<wbc_Controller.model_A<<std::endl;
+    std::cout<<wbc_Controller.model_bd<<std::endl;
+    std::cout<<wbc_Controller.uNow.transpose()<<std::endl;
 
     return 0;
 }
