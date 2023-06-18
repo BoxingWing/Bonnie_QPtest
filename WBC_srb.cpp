@@ -4,6 +4,7 @@
 
 #include "WBC_srb.h"
 #include <iostream>
+#include <eigen3/Eigen/Dense>
 #include "iomanip"
 using namespace Eigen;
 
@@ -70,13 +71,18 @@ WBC_srb::WBC_srb():wbc_srb_QP(8,12) {
     pe_Body_Accumu.setZero();
 };
 
-void WBC_srb::set_state(double *xCoM, double *vCoM,double *pe, double *eul, double *omegaW) {
+void WBC_srb::set_state(double *xCoM, double *vCoM,double *pe, double *eul, double *omegaIn, bool isOmegaW) {
     for (int i=0;i<3;i++)
     {pCoM_cur(i)=xCoM[i]; vCoM_cur(i)=vCoM[i];}
     for (int i=0;i<6;i++)
         pe_cur(i)=pe[i];
     R_cur= Euler2Rot(eul[0],eul[1],eul[2]);
-    w_cur<<omegaW[0],omegaW[1],omegaW[2];
+    w_cur<<omegaIn[0],omegaIn[1],omegaIn[2];
+    if (~isOmegaW)
+        w_cur=R_cur*w_cur;
+
+    if (~isOmegaW)
+        w_cur = R_cur*w_cur;
 
     pCoM_Off_W=R_cur*pCoM_Off_L;
 }
@@ -114,18 +120,16 @@ void WBC_srb::setLegState(double *legInd) {
 
 void WBC_srb::setModelPara(double mIn, Eigen::Matrix<double, 3, 3> &Iin,double miuIn) {
     m=mIn;
-    Ig=Iin*m/13.0;
+    Ig=Iin;
     miu=miuIn;
     IgInv=Ig.inverse();
     M_c.block<4,1>(0,2)<<miu,miu,miu,miu;
 }
 
 void WBC_srb::get_ddX_ddw(double *xd, double *dx_d, double *Euld, double *w_d) {
-    Vector3d xd_vec, dxd_vec;
     xd_vec<<xd[0],xd[1],xd[2];
     dxd_vec<<dx_d[0],dx_d[1],dx_d[2];
     ddx_d=K_xp.asDiagonal()*(xd_vec-pCoM_cur)+K_xd.asDiagonal()*(dxd_vec-vCoM_cur);
-    Matrix3d Rd;
     Rd= Euler2Rot(Euld[0],Euld[1],Euld[2]);
     Vector3d theta_delta,wd_vec;
     theta_delta= getWfromR(Rd*R_cur.transpose());
@@ -133,7 +137,7 @@ void WBC_srb::get_ddX_ddw(double *xd, double *dx_d, double *Euld, double *w_d) {
     ddw_d=K_wp.asDiagonal()*theta_delta+K_wd.asDiagonal()*(wd_vec-w_cur);
 }
 
-void WBC_srb::runQP() {
+void WBC_srb::runQP(bool EN) {
 
     Matrix<double,3,1> tmp;
     model_A.block<3,3>(3,0)= crossMatrix(pe_cur.block<3,1>(0,0)-(pCoM_cur+pCoM_Off_W));
@@ -175,10 +179,11 @@ void WBC_srb::runQP() {
 //    res=wbc_srb_QP.init(qp_H,qp_g,qp_A,NULL,NULL,qp_lbA,qp_ubA,nWSR,&cpu_time);
     nWSR=100;
     cpu_time=0.001;
-    res=wbc_srb_QP.init(qp_H,qp_g,qp_A,NULL,NULL,qp_lbA,qp_ubA,nWSR,&cpu_time,xOpt_iniGuess);
-    qpStatus=qpOASES::getSimpleStatus(res);
-    last_nWSR=nWSR;
-    last_cpuTime=cpu_time;
+    if (EN) {
+        res = wbc_srb_QP.init(qp_H, qp_g, qp_A, NULL, NULL, qp_lbA, qp_ubA, nWSR, &cpu_time, xOpt_iniGuess);
+        qpStatus = qpOASES::getSimpleStatus(res);
+        last_nWSR = nWSR;
+        last_cpuTime = cpu_time;
 
 //    std::cout<<qpStatus<<std::endl;
 
@@ -191,13 +196,13 @@ void WBC_srb::runQP() {
 //    else
 //        std::cout<<qpOASES::getSimpleStatus(res)<<std::endl;
 
-    qpOASES::real_t xOpt[8];
-    wbc_srb_QP.getPrimalSolution(xOpt);
+        qpOASES::real_t xOpt[8];
+        wbc_srb_QP.getPrimalSolution(xOpt);
 
-    uNow<<xOpt[0],xOpt[1],xOpt[2],xOpt[3],xOpt[4],
-            xOpt[5],xOpt[6],xOpt[7];
+        uNow << xOpt[0], xOpt[1], xOpt[2], xOpt[3], xOpt[4],
+                xOpt[5], xOpt[6], xOpt[7];
+
     uOld=uNow;
-
     wbc_srb_QP.reset();
 
     Matrix<double,6,1> tmpRes;
@@ -205,20 +210,32 @@ void WBC_srb::runQP() {
     ddx_d_qpRes=tmpRes.block<3,1>(0,0)/m+g_vec;
     ddw_d_qpRes=R_cur*IgInv*R_cur.transpose()*tmpRes.block<3,1>(3,0);
 
-    pCoM_pred=pCoM_cur+vCoM_cur*dt+ddw_d_qpRes*0.5*dt*dt;
-    Vector3d omegaPred;
-    omegaPred=w_cur*dt+ddw_d_qpRes*0.5*dt*dt;
-    R_pred= RodForm(omegaPred)*R_cur;
+//    pCoM_pred=pCoM_cur+vCoM_cur*dt+ddw_d_qpRes*0.5*dt*dt;
+//    Vector3d omegaPred;
+//    omegaPred=w_cur*dt+ddw_d_qpRes*0.5*dt*dt;
+//    R_pred= RodForm(omegaPred)*R_cur;
+
+    pCoM_pred = pCoM_cur;
+    pCoM_pred(2)= xd_vec(2);
+    R_pred= Rd;
 
     pe_Body_pred.block<3,1>(0,0)=R_pred.transpose()*(pe_cur.block<3,1>(0,0)-pCoM_pred);
     pe_Body_pred.block<3,1>(3,0)=R_pred.transpose()*(pe_cur.block<3,1>(3,0)-pCoM_pred);
-    pe_Body_Old.block<3,1>(0,0)=R_cur.transpose()*(pe_cur.block<3,1>(0,0)-pCoM_cur);
-    pe_Body_Old.block<3,1>(3,0)=R_cur.transpose()*(pe_cur.block<3,1>(3,0)-pCoM_cur);
+//    pe_Body_Old.block<3,1>(0,0)=R_cur.transpose()*(pe_cur.block<3,1>(0,0)-pCoM_cur);
+//    pe_Body_Old.block<3,1>(3,0)=R_cur.transpose()*(pe_cur.block<3,1>(3,0)-pCoM_cur);
+    pe_Body_Old.block<3,1>(0,0)<<0.0585,  0.0427-0.125, -0.6;
+    pe_Body_pred.block<3,1>(3,0)<<0.0585, -0.0427+0.125, -0.6;
     pe_Body_delta=pe_Body_pred-pe_Body_Old;
+    }
+    else {
+        uNow.setZero();
+        uOld=uNow;
+        pe_Body_delta.setZero();
+    }
 
     //pe_Body_Accumu+=pe_Body_delta;
 
-    if (legInStance[0]<0.5)
+    if (legInStance[0]<0.5 && EN == true)
     {
         if (pe_Body_Accumu.block<3,1>(0,0).norm()<1e-5)
             pe_Body_Accumu.block<3,1>(0,0).setZero();
@@ -233,13 +250,13 @@ void WBC_srb::runQP() {
                 uOut(i)*=0.95;
         }
     }
-    else
+    else if (EN == true)
     {
-        pe_Body_Accumu.block<3,1>(0,0)+=pe_Body_delta.block<3,1>(0,0);
+        pe_Body_Accumu.block<3,1>(0,0)=pe_Body_delta.block<3,1>(0,0);
         uOut.block<4,1>(0,0)=uNow.block<4,1>(0,0);
     }
 
-    if (legInStance[1]<0.5)
+    if (legInStance[1]<0.5 && EN == true)
     {
         if (pe_Body_Accumu.block<3,1>(3,0).norm()<1e-5)
             pe_Body_Accumu.block<3,1>(3,0).setZero();
@@ -254,9 +271,9 @@ void WBC_srb::runQP() {
                 uOut(i)*=0.95;
         }
     }
-    else
+    else if (EN == true)
     {
-        pe_Body_Accumu.block<3,1>(3,0)+=pe_Body_delta.block<3,1>(3,0);
+        pe_Body_Accumu.block<3,1>(3,0)=pe_Body_delta.block<3,1>(3,0);
         uOut.block<4,1>(4,0)=uNow.block<4,1>(4,0);
     }
 

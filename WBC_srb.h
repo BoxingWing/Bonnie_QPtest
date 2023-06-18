@@ -6,7 +6,7 @@
 #define BONNIE_QPTEST_WBC_SRB_H
 
 #include "qpOASES.hpp"
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <cmath>
 
 class WBC_srb {
@@ -54,12 +54,14 @@ public:
     Eigen::Matrix<double,8,1> uOld, uNow, uOut;
     Eigen::Matrix<double,3,1> ddx_d_qpRes,ddw_d_qpRes;
     Eigen::Matrix<double,6,1> pe_Body_pred, pe_Body_Old, pe_Body_delta, pe_Body_Accumu;
+    Eigen::Vector3d xd_vec, dxd_vec;
 
     Eigen::Matrix<double,6,8> model_A;
     Eigen::Matrix<double,6,1> model_bd;
     Eigen::Matrix<double,6,1> QP_S;
     Eigen::Matrix<double,8,1> QP_Wc, QP_Wp;
     Eigen::Matrix<double,4,8> QP_M_cs, QP_M_cf;
+    Eigen::Matrix<double,3,3> Rd;
     double QP_alpha, QP_beta;
 
     int qpStatus{0};
@@ -67,10 +69,10 @@ public:
     double last_cpuTime{0};
 
     void setModelPara(double mIn, Eigen::Matrix<double,3,3> &Iin,double miuIn);
-    void set_state(double* xCoM, double*  vCoM, double* pe, double* eul, double* omegaW);
+    void set_state(double* xCoM, double*  vCoM, double* pe, double* eul, double* omegaW, bool isOmegaW);
     void setLegState(double* legInd); // first one for right leg
     void get_ddX_ddw(double *xd, double *dx_d, double *Euld, double *w_d);
-    void runQP();
+    void runQP(bool EN);
     Eigen::Matrix<double,3,1> getWfromR(Eigen::Matrix<double,3,3> R);
     Eigen::Matrix<double,3,3> Euler2Rot(double roll, double pitch, double yaw);
     void copy_Eigen_to_real_t(qpOASES::real_t* target, Eigen::MatrixXd source, int nRows, int nCols);

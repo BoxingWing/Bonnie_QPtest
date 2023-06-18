@@ -1,7 +1,7 @@
 clear variables;
 close all;
 dataOut=load('OutputData.txt');
-stateData=load('StateData.txt');
+stateData=load('stateData_QP.txt');
 
 xCoM=stateData(:,1:3);
 vCoM=stateData(:,4:6);
@@ -120,28 +120,18 @@ end
 figure();
 subplot(2,1,1)
 plot(time,pe_Body_Old(:,1:3));
-hold on;
-plot(time,pe_Body_delta(:,1:3)+pe_Body_Old(:,1:3));
-legend('peB-Old-x','peB-Old-y','peB-Old-z','peB-New-x','peB-New-y','peB-New-z');
+legend('peB-Old-x','peB-Old-y','peB-Old-z');
 subplot(2,1,2)
 plot(time,pe_Body_Old(:,4:6));
-hold on;
-plot(time,pe_Body_delta(:,4:6)+pe_Body_Old(:,4:6));
-legend('peB-Old-x','peB-Old-y','peB-Old-z','peB-New-x','peB-New-y','peB-New-z');
+legend('peB-Old-x','peB-Old-y','peB-Old-z');
 
 figure();
 subplot(2,1,1)
-plot(time,pe_Body_Old(:,1:3));
-hold on;
-plot(time,pe_Body_Accumu(:,1:3)+pe_Body_Old(:,1:3));
-legend('peB-Old-x','peB-Old-y','peB-Old-z','peB-New-x','peB-New-y','peB-New-z');
+plot(time,pe_Body_Accumu(:,1:3));
+legend('peBR-Body-Accumu-x','peBR-Body-Accumu-y','peBR-Body-Accumu-z');
 subplot(2,1,2)
-plot(time,pe_Body_Old(:,4:6));
-hold on;
-plot(time,pe_Body_Accumu(:,4:6)+pe_Body_Old(:,4:6));
-legend('peB-Old-x','peB-Old-y','peB-Old-z','peB-New-x','peB-New-y','peB-New-z');
-
-
+plot(time,pe_Body_Accumu(:,4:6));
+legend('peBL-Body-Accumu-x','peBL-Body-Accumu-y','peBL-Body-Accumu-z');
 
 
 

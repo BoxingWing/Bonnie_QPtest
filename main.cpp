@@ -3,7 +3,7 @@
 #include "quill/Quill.h"
 #include "FileOperator.h"
 #include "Pinocchio_Utilities.h"
-FileOperator fileRW("../StateData.txt");
+FileOperator fileRW("../stateData_QP.txt");
 
 Pinocchio_Utilities pinLib("../BonnieURDF_latest.urdf");
 
@@ -35,8 +35,9 @@ int main()
     Ig<<0.523524,3.19194e-5,-0.0279089,
         3.19194e-5,0.393347,-0.000262413,
         -0.0279089,-0.000262413,0.21856;
+    Ig=Ig/13.*14.;
 
-    double xCoM[3],vCoM[3],pe[6],eul[3],omegaW[3],legInd[2],xd[3],Euld[3],dx_d[3], w_d[3];
+    double xCoM[3],vCoM[3],pe[6],eul[3],omegaL[3],legInd[2],xd[3],Euld[3],dx_d[3], w_d[3];
     double legIndPhase[2];
     double qr[5],ql[5],qPas_r[2],qPas_l[2];
     double xCoMOff[3];
@@ -45,7 +46,7 @@ int main()
     vCoM[0]=0;vCoM[1]=0;vCoM[2]=0;
     pe[0]=0;pe[1]=-0.0823955;pe[2]=0;pe[3]=0;pe[4]=0.0824522;pe[5]=0;
     eul[0]=-0.1/3.1415*180;eul[1]=0;eul[2]=0;
-    omegaW[0]=0;omegaW[1]=0;omegaW[2]=0;
+    omegaL[0]=0;omegaL[1]=0;omegaL[2]=0;
     legInd[0]=1;legInd[1]=0;
     xd[0]=0;xd[1]=0;xd[2]=0.6;
     Euld[0]=0;Euld[1]=0;Euld[2]=0;
@@ -86,9 +87,9 @@ int main()
         eul[0]=fileRW.values[16];
         eul[1]=fileRW.values[17];
         eul[2]=fileRW.values[18];
-        omegaW[0]=fileRW.values[19];
-        omegaW[1]=fileRW.values[20];
-        omegaW[2]=fileRW.values[21];
+        omegaL[0]=fileRW.values[19];
+        omegaL[1]=fileRW.values[20];
+        omegaL[2]=fileRW.values[21];
         qr[0]=fileRW.values[22];
         qr[1]=fileRW.values[23];
         qr[2]=fileRW.values[24];
@@ -104,11 +105,11 @@ int main()
         qPas_l[0]=fileRW.values[34];
         qPas_l[1]=fileRW.values[35];
 
-        wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaW);
+        wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaL,false);
         wbc_Controller.setLegState(legIndPhase);
         wbc_Controller.get_ddX_ddw(xd, dx_d, Euld, w_d);
-        if (i*0.001>2.1)
-            wbc_Controller.runQP();
+        if (i>312)
+            wbc_Controller.runQP(true);
 
         pinLib.setJointAngle(qr,ql,qPas_r,qPas_l);
 //        pinLib.computeJac();
