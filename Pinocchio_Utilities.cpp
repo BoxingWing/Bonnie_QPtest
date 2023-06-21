@@ -103,6 +103,7 @@ void Pinocchio_Utilities::computeJac_float(double *eul) {
     J_trans(4,3)=1;
     J_trans(5,3)=-1;
     J_trans(6,4)=1;
+//    std::cout<<J_trans<<std::endl;
 
     J_L_float=J_L_tmp*J_trans;
     J_R_float=J_R_tmp*J_trans;

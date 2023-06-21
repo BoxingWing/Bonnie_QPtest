@@ -35,7 +35,7 @@ int main()
     Ig<<0.523524,3.19194e-5,-0.0279089,
         3.19194e-5,0.393347,-0.000262413,
         -0.0279089,-0.000262413,0.21856;
-    Ig=Ig/13.*14.;
+    Ig=Ig/13*14;
 
     double xCoM[3],vCoM[3],pe[6],eul[3],omegaL[3],legInd[2],xd[3],Euld[3],dx_d[3], w_d[3];
     double legIndPhase[2];
@@ -54,13 +54,13 @@ int main()
     w_d[0]=0;w_d[1]=0;w_d[2]=0;
     legIndPhase[0]=1;legIndPhase[1]=1;
 
-    wbc_Controller.QP_S<<1,2,10,450,450,100;
+    wbc_Controller.QP_S<<1,2,10,450,450,100; // 1,2,10,450,450,100;
     wbc_Controller.QP_Wp<<10,10,10,10,10,10,10,10;
     wbc_Controller.QP_Wc<<3,3,3,3,3,3,3,3;
     wbc_Controller.QP_alpha=0.1;
     wbc_Controller.QP_beta=0.01;
-    wbc_Controller.K_xp<<75,75,75;
-    wbc_Controller.K_xd<<10,10,10;
+    wbc_Controller.K_xp<<75,75,40;
+    wbc_Controller.K_xd<<10,10,5;
     wbc_Controller.K_wp<<300,300,300;
     wbc_Controller.K_wd<<30,30,30;
 
@@ -105,7 +105,8 @@ int main()
         qPas_l[0]=fileRW.values[34];
         qPas_l[1]=fileRW.values[35];
 
-        wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaL,false);
+        eul[2]=0;
+        wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaW);
         wbc_Controller.setLegState(legIndPhase);
         wbc_Controller.get_ddX_ddw(xd, dx_d, Euld, w_d);
         if (i>312)
