@@ -216,15 +216,16 @@ void WBC_srb::runQP(bool EN) {
 //    R_pred= RodForm(omegaPred)*R_cur;
 
     pCoM_pred = pCoM_cur;
-    pCoM_pred(2)= xd_vec(2);
     R_pred= Rd;
 
     pe_Body_pred.block<3,1>(0,0)=R_pred.transpose()*(pe_cur.block<3,1>(0,0)-pCoM_pred);
     pe_Body_pred.block<3,1>(3,0)=R_pred.transpose()*(pe_cur.block<3,1>(3,0)-pCoM_pred);
+    pe_Body_pred(2)=-0.6;
+    pe_Body_pred(5)=-0.6;
 //    pe_Body_Old.block<3,1>(0,0)=R_cur.transpose()*(pe_cur.block<3,1>(0,0)-pCoM_cur);
 //    pe_Body_Old.block<3,1>(3,0)=R_cur.transpose()*(pe_cur.block<3,1>(3,0)-pCoM_cur);
     pe_Body_Old.block<3,1>(0,0)<<0.0585,  0.0427-0.125, -0.6;
-    pe_Body_pred.block<3,1>(3,0)<<0.0585, -0.0427+0.125, -0.6;
+    pe_Body_Old.block<3,1>(3,0)<<0.0585, -0.0427+0.125, -0.6;
     pe_Body_delta=pe_Body_pred-pe_Body_Old;
     }
     else {

@@ -106,7 +106,7 @@ int main()
         qPas_l[1]=fileRW.values[35];
 
         eul[2]=0;
-        wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaW);
+        wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaL, false);
         wbc_Controller.setLegState(legIndPhase);
         wbc_Controller.get_ddX_ddw(xd, dx_d, Euld, w_d);
         if (i>312)

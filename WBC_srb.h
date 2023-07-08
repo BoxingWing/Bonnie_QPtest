@@ -62,7 +62,6 @@ public:
     Eigen::Matrix<double,8,1> QP_Wc, QP_Wp;
     Eigen::Matrix<double,4,8> QP_M_cs, QP_M_cf;
     Eigen::Matrix3d Rd;
-    Eigen::Vector3d xd_vec, dxd_vec;
     double QP_alpha, QP_beta;
 
     int qpStatus{0};
