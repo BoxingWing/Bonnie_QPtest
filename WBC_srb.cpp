@@ -144,7 +144,7 @@ void WBC_srb::runQP(bool EN) {
     model_A.block<3,3>(3,0)= crossMatrix(pe_cur.block<3,1>(0,0)-(pCoM_cur+pCoM_Off_W));
     model_A.block<3,3>(3,4)= crossMatrix(pe_cur.block<3,1>(3,0)-(pCoM_cur+pCoM_Off_W));
     model_bd.block<3,1>(0,0)=m*(ddx_d-g_vec);
-    model_bd.block<3,1>(3,0)=R_cur*Ig*R_cur.transpose()*ddw_d;
+    model_bd.block<3,1>(3,0)=R_cur_z*Ig*R_cur_z.transpose()*ddw_d;
 
 //    std::cout<<model_A<<std::endl;
 
@@ -209,9 +209,9 @@ void WBC_srb::runQP(bool EN) {
     Matrix<double,6,1> tmpRes;
     tmpRes=model_A*uNow;
     ddx_d_qpRes=tmpRes.block<3,1>(0,0)/m+g_vec;
-    ddw_d_qpRes=R_cur*IgInv*R_cur.transpose()*tmpRes.block<3,1>(3,0);
+    ddw_d_qpRes=R_cur_z*IgInv*R_cur_z.transpose()*tmpRes.block<3,1>(3,0);
 
-    pCoM_pred=pCoM_cur+vCoM_cur*dt+ddw_d_qpRes*0.5*dt*dt;
+    pCoM_pred=pCoM_cur+vCoM_cur*dt+ddx_d_qpRes*0.5*dt*dt;
     Vector3d omegaPred;
     //omegaPred=w_cur*dt+ddw_d_qpRes*0.5*dt*dt;
     omegaPred=w_cur*dt+ddw_d*0.5*dt*dt;

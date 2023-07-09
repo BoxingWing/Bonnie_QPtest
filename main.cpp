@@ -63,8 +63,8 @@ int main()
     wbc_Controller.QP_beta=0.01;
     wbc_Controller.K_xp<<75,75,40;
     wbc_Controller.K_xd<<10,10,5;
-    wbc_Controller.K_wp<<300,300,300;
-    wbc_Controller.K_wd<<30,30,30;
+    wbc_Controller.K_wp<<300,300,0;
+    wbc_Controller.K_wd<<30,30,0;
 
     wbc_Controller.setModelPara(14,Ig,0.5);
 
