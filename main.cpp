@@ -3,6 +3,7 @@
 #include "quill/Quill.h"
 #include "FileOperator.h"
 #include "Pinocchio_Utilities.h"
+#include "LPFilter_ava.h"
 FileOperator fileRW("../stateData_QP.txt");
 
 Pinocchio_Utilities pinLib("../BonnieURDF_latest.urdf");
@@ -53,6 +54,7 @@ int main()
     dx_d[0]=0;dx_d[1]=0;dx_d[2]=0;
     w_d[0]=0;w_d[1]=0;w_d[2]=0;
     legIndPhase[0]=1;legIndPhase[1]=1;
+    double yaw0;
 
     wbc_Controller.QP_S<<1,2,10,450,450,100; // 1,2,10,450,450,100;
     wbc_Controller.QP_Wp<<10,10,10,10,10,10,10,10;
@@ -65,6 +67,9 @@ int main()
     wbc_Controller.K_wd<<30,30,30;
 
     wbc_Controller.setModelPara(14,Ig,0.5);
+
+    LPFilter_ava wx,wy,wz,eulx,euly,eulz;
+
     for (int i = 0; i < fileRW.getTotalLine(); i++) {
         fileRW.getNewLine();
         fileRW.getNumsInLine();
@@ -104,8 +109,17 @@ int main()
         ql[4]=fileRW.values[33];
         qPas_l[0]=fileRW.values[34];
         qPas_l[1]=fileRW.values[35];
+        yaw0=fileRW.values[36];
 
-        eul[2]=0;
+        eul[2]=eul[2]-yaw0;
+
+        omegaL[0]=wx.run(omegaL[0]);
+        omegaL[1]=wy.run(omegaL[1]);
+        omegaL[2]=wz.run(omegaL[2]);
+        eul[0]=eulx.run(eul[0]);
+        eul[1]=euly.run(eul[1]);
+        eul[2]=eulz.run(eul[2]);
+
         wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaL, false);
         wbc_Controller.setLegState(legIndPhase);
         wbc_Controller.get_ddX_ddw(xd, dx_d, Euld, w_d);
@@ -200,7 +214,12 @@ int main()
         tmpValue.push_back(wbc_Controller.pe_Body_Accumu(3));
         tmpValue.push_back(wbc_Controller.pe_Body_Accumu(4));
         tmpValue.push_back(wbc_Controller.pe_Body_Accumu(5));
-
+        tmpValue.push_back(omegaL[0]);
+        tmpValue.push_back(omegaL[1]);
+        tmpValue.push_back(omegaL[2]);
+        tmpValue.push_back(eul[0]);
+        tmpValue.push_back(eul[1]);
+        tmpValue.push_back(eul[2]);
 
         tmpStr = fmt::format("{:.5f}", fmt::join(tmpValue, " "));
         LOG_INFO(dl, "{}", tmpStr);

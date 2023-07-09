@@ -69,6 +69,8 @@ WBC_srb::WBC_srb():wbc_srb_QP(8,12) {
     wbc_srb_QP.setOptions(options);
 
     pe_Body_Accumu.setZero();
+
+    R_cur_z.setIdentity();
 };
 
 void WBC_srb::set_state(double *xCoM, double *vCoM,double *pe, double *eul, double *omegaIn, bool isOmegaW) {
@@ -77,12 +79,10 @@ void WBC_srb::set_state(double *xCoM, double *vCoM,double *pe, double *eul, doub
     for (int i=0;i<6;i++)
         pe_cur(i)=pe[i];
     R_cur= Euler2Rot(eul[0],eul[1],eul[2]);
+    R_cur_z=Euler2Rot(0,0,eul[2]);
     w_cur<<omegaIn[0],omegaIn[1],omegaIn[2];
     if (~isOmegaW)
         w_cur=R_cur*w_cur;
-
-    if (~isOmegaW)
-        w_cur = R_cur*w_cur;
 
     pCoM_Off_W=R_cur*pCoM_Off_L;
 }
@@ -131,6 +131,7 @@ void WBC_srb::get_ddX_ddw(double *xd, double *dx_d, double *Euld, double *w_d) {
     dxd_vec<<dx_d[0],dx_d[1],dx_d[2];
     ddx_d=K_xp.asDiagonal()*(xd_vec-pCoM_cur)+K_xd.asDiagonal()*(dxd_vec-vCoM_cur);
     Rd= Euler2Rot(Euld[0],Euld[1],Euld[2]);
+
     Vector3d theta_delta,wd_vec;
     theta_delta= getWfromR(Rd*R_cur.transpose());
     wd_vec<<w_d[0],w_d[1],w_d[2];
@@ -210,20 +211,25 @@ void WBC_srb::runQP(bool EN) {
     ddx_d_qpRes=tmpRes.block<3,1>(0,0)/m+g_vec;
     ddw_d_qpRes=R_cur*IgInv*R_cur.transpose()*tmpRes.block<3,1>(3,0);
 
-//    pCoM_pred=pCoM_cur+vCoM_cur*dt+ddw_d_qpRes*0.5*dt*dt;
-//    Vector3d omegaPred;
-//    omegaPred=w_cur*dt+ddw_d_qpRes*0.5*dt*dt;
-//    R_pred= RodForm(omegaPred)*R_cur;
+    pCoM_pred=pCoM_cur+vCoM_cur*dt+ddw_d_qpRes*0.5*dt*dt;
+    Vector3d omegaPred;
+    //omegaPred=w_cur*dt+ddw_d_qpRes*0.5*dt*dt;
+    omegaPred=w_cur*dt+ddw_d*0.5*dt*dt;
+    R_pred= RodForm(omegaPred)*R_cur;
 
-    pCoM_pred = pCoM_cur;
-    R_pred= Rd;
+//    pCoM_pred = pCoM_cur;
+//    R_pred= Rd;
 
     pe_Body_pred.block<3,1>(0,0)=R_pred.transpose()*(pe_cur.block<3,1>(0,0)-pCoM_pred);
     pe_Body_pred.block<3,1>(3,0)=R_pred.transpose()*(pe_cur.block<3,1>(3,0)-pCoM_pred);
     pe_Body_pred(2)=-0.6;
     pe_Body_pred(5)=-0.6;
+
 //    pe_Body_Old.block<3,1>(0,0)=R_cur.transpose()*(pe_cur.block<3,1>(0,0)-pCoM_cur);
 //    pe_Body_Old.block<3,1>(3,0)=R_cur.transpose()*(pe_cur.block<3,1>(3,0)-pCoM_cur);
+//    pe_Body_Old(2)=-0.6;
+//    pe_Body_Old(5)=-0.6;
+
     pe_Body_Old.block<3,1>(0,0)<<0.0585,  0.0427-0.125, -0.6;
     pe_Body_Old.block<3,1>(3,0)<<0.0585, -0.0427+0.125, -0.6;
     pe_Body_delta=pe_Body_pred-pe_Body_Old;

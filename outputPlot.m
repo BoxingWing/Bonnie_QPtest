@@ -9,7 +9,11 @@ peW=stateData(:,7:12);
 legInd=stateData(:,13:14);
 legIndPha=stateData(:,15:16);
 eul=stateData(:,17:19);
-omegaW=stateData(:,20:22);
+omegaL=stateData(:,20:22);
+yaw0=stateData(:,37);
+eul(:,3)=eul(:,3)-yaw0;
+pe_L_fk=stateData(:,38:43);
+pe_Body_Accumu_OriRec=stateData(:,44:49);
 
 last_nWSR=dataOut(:,11);
 last_cpuTime=dataOut(:,12);
@@ -25,6 +29,8 @@ ddw_d_qpRes=dataOut(:,45:47);
 pe_Body_Old=dataOut(:,48:53);
 pe_Body_delta=dataOut(:,54:59);
 pe_Body_Accumu=dataOut(:,60:65);
+wL_filtered=dataOut(:,66:68);
+eul_filtered=dataOut(:,69:71);
 
 time=(1:1:length(dataOut(:,1)))*0.001;
 
@@ -36,11 +42,17 @@ subplot(4,1,2)
 plot(time,vCoM);legend('vCoMx','vCoMy','vCoMz');
 ylabel('velocity (m/s)');
 subplot(4,1,3)
-plot(time,eul);legend('roll','pitch','yaw');
+plot(time,eul);
+hold on;
+plot(time,eul_filtered);
+legend('roll','pitch','yaw','roll_LP','pitch_LP','yaw_LP');
 ylabel('attitude (rad)')
 subplot(4,1,4)
-plot(time,omegaW);legend('wx','wy','wz');
-ylabel('omegaW (rad/s)')
+plot(time,omegaL);
+hold on;
+plot(time,wL_filtered);
+legend('wx','wy','wz','wx_LP','wy_LP','wz_LP');
+ylabel('omegaL (rad/s)')
 
 
 figure();
@@ -49,6 +61,11 @@ plot(time,peW(:,1:3));legend('pewrX','pewrY','pewrZ');
 subplot(2,1,2)
 plot(time,peW(:,4:6));legend('pewrX','pewrY','pewrZ');
 
+figure();
+subplot(2,1,1)
+plot(time,pe_L_fk(:,1:3));legend('peL-fb-rX','peL-fb-rY','peL-fb-rZ');
+subplot(2,1,2)
+plot(time,pe_L_fk(:,4:6));legend('peL-fb-lX','peL-fb-lY','peL-fb-lZ');
 
 figure();
 subplot(2,2,1)
@@ -117,21 +134,31 @@ plot(time,ddw_d_qpRes(:,i));
 legend('ddw-d-cmd','ddw-d-qp')
 end
 
+
 figure();
 subplot(2,1,1)
-plot(time,pe_Body_Old(:,1:3));
-legend('peB-Old-x','peB-Old-y','peB-Old-z');
+plot(time,peW(:,1:3)-xCoM);
+legend('peW-xCoM-x','peW-xCoM-y','peW-xCoM-z');
+ylabel('right leg')
 subplot(2,1,2)
-plot(time,pe_Body_Old(:,4:6));
-legend('peB-Old-x','peB-Old-y','peB-Old-z');
+plot(time,peW(:,4:6)-xCoM);
+legend('peW-xCoM-x','peW-xCoM-y','peW-xCoM-z');
+ylabel('left leg')
+
 
 figure();
 subplot(2,1,1)
 plot(time,pe_Body_Accumu(:,1:3));
-legend('peBR-Body-Accumu-x','peBR-Body-Accumu-y','peBR-Body-Accumu-z');
+hold on;
+plot(time,pe_Body_Accumu_OriRec(:,1:3));
+legend('peBR-Body-Accumu-x','peBR-Body-Accumu-y','peBR-Body-Accumu-z', ...
+    'peBR-Body-Accumu-ori-x','peBR-Body-Accumu-ori-y','peBR-Body-Accumu-ori-z');
 subplot(2,1,2)
 plot(time,pe_Body_Accumu(:,4:6));
-legend('peBL-Body-Accumu-x','peBL-Body-Accumu-y','peBL-Body-Accumu-z');
+hold on;
+plot(time,pe_Body_Accumu_OriRec(:,4:6));
+legend('peBL-Body-Accumu-x','peBL-Body-Accumu-y','peBL-Body-Accumu-z', ...
+    'peBL-Body-Accumu-ori-x','peBL-Body-Accumu-ori-y','peBL-Body-Accumu-ori-z');
 
 
 

@@ -16,6 +16,7 @@ private:
     qpOASES::QProblem wbc_srb_QP;
 
     Eigen::Matrix<double,3,3> R_cur;
+    Eigen::Matrix<double,3,3> R_cur_z;
     Eigen::Vector3d pCoM_cur, vCoM_cur, w_cur;
     Eigen::Matrix<double,6,1> pe_cur;
     double m,miu;

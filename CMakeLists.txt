@@ -13,5 +13,5 @@ include_directories("/usr/include/eigen3")
 include_directories("qpOASES/include")
 
 
-add_executable(Bonnie_QPtest main.cpp WBC_srb.cpp WBC_srb.h FileOperator.cpp FileOperator.h Pinocchio_Utilities.h Pinocchio_Utilities.cpp)
+add_executable(Bonnie_QPtest main.cpp WBC_srb.cpp WBC_srb.h FileOperator.cpp FileOperator.h Pinocchio_Utilities.h Pinocchio_Utilities.cpp LPFilter_ava.cpp LPFilter_ava.h)
 target_link_libraries(Bonnie_QPtest quill::quill qpOASES pinocchio::pinocchio)
