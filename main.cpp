@@ -36,7 +36,7 @@ int main()
     Ig<<0.523524,3.19194e-5,-0.0279089,
         3.19194e-5,0.393347,-0.000262413,
         -0.0279089,-0.000262413,0.21856;
-    Ig=Ig/13*14;
+    Ig=Ig/13.0*14.0;
 
     double xCoM[3],vCoM[3],pe[6],eul[3],omegaL[3],legInd[2],xd[3],Euld[3],dx_d[3], w_d[3];
     double legIndPhase[2];
@@ -49,7 +49,9 @@ int main()
     eul[0]=-0.1/3.1415*180;eul[1]=0;eul[2]=0;
     omegaL[0]=0;omegaL[1]=0;omegaL[2]=0;
     legInd[0]=1;legInd[1]=0;
-    xd[0]=0;xd[1]=0;xd[2]=0.6;
+
+    xd[0]=0;xd[1]=0;xd[2]=0.59;
+
     Euld[0]=0;Euld[1]=0;Euld[2]=0;
     dx_d[0]=0;dx_d[1]=0;dx_d[2]=0;
     w_d[0]=0;w_d[1]=0;w_d[2]=0;
@@ -57,18 +59,19 @@ int main()
     double yaw0;
 
     wbc_Controller.QP_S<<1,2,10,450,450,100; // 1,2,10,450,450,100;
-    wbc_Controller.QP_Wp<<10,10,10,10,10,10,10,10;
+    wbc_Controller.QP_Wp<<100,100,100,100,100,100,100,100;
     wbc_Controller.QP_Wc<<3,3,3,3,3,3,3,3;
     wbc_Controller.QP_alpha=0.1;
-    wbc_Controller.QP_beta=0.01;
-    wbc_Controller.K_xp<<75,75,40;
-    wbc_Controller.K_xd<<10,10,5;
-    wbc_Controller.K_wp<<300,300,0;
-    wbc_Controller.K_wd<<30,30,0;
+    wbc_Controller.QP_beta=0.1;
+    wbc_Controller.K_xp<<75,75,75;
+    wbc_Controller.K_xd<<10,10,10;
+    wbc_Controller.K_wp<<300,500,100;
+    wbc_Controller.K_wd<<20,20,10;
 
     wbc_Controller.setModelPara(14,Ig,0.5);
 
     LPFilter_ava wx,wy,wz,eulx,euly,eulz;
+    double eul_ft[3], wL_ft[3];
 
     for (int i = 0; i < fileRW.getTotalLine(); i++) {
         fileRW.getNewLine();
@@ -110,20 +113,29 @@ int main()
         qPas_l[0]=fileRW.values[34];
         qPas_l[1]=fileRW.values[35];
         yaw0=fileRW.values[36];
+        wL_ft[0]=fileRW.values[57];
+        wL_ft[1]=fileRW.values[58];
+        wL_ft[2]=fileRW.values[59];
+        eul_ft[0]=fileRW.values[60];
+        eul_ft[1]=fileRW.values[61];
+        eul_ft[2]=fileRW.values[62];
 
         eul[2]=eul[2]-yaw0;
 
-        omegaL[0]=wx.run(omegaL[0]);
-        omegaL[1]=wy.run(omegaL[1]);
-        omegaL[2]=wz.run(omegaL[2]);
-        eul[0]=eulx.run(eul[0]);
-        eul[1]=euly.run(eul[1]);
-        eul[2]=eulz.run(eul[2]);
+//        omegaL[0]=wx.run(omegaL[0]);
+//        omegaL[1]=wy.run(omegaL[1]);
+//        omegaL[2]=wz.run(omegaL[2]);
+//        eul[0]=eulx.run(eul[0]);
+//        eul[1]=euly.run(eul[1]);
+//        eul[2]=eulz.run(eul[2]);
 
-        wbc_Controller.set_state(xCoM, vCoM, pe, eul, omegaL, false);
+//        if (i>749)
+//            eul[2]=0;
+
+        wbc_Controller.set_state(xCoM, vCoM, pe, eul_ft, wL_ft, false);
         wbc_Controller.setLegState(legIndPhase);
         wbc_Controller.get_ddX_ddw(xd, dx_d, Euld, w_d);
-        if (i>312)
+        if (i>380)
             wbc_Controller.runQP(true);
 
         pinLib.setJointAngle(qr,ql,qPas_r,qPas_l);

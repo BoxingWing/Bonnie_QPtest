@@ -14,7 +14,16 @@ yaw0=stateData(:,37);
 eul(:,3)=eul(:,3)-yaw0;
 pe_L_fk=stateData(:,38:43);
 pe_Body_Accumu_OriRec=stateData(:,44:49);
+ufe_Ori=stateData(:,50:57);
+wL_filtered=stateData(:,58:60);
+eul_filtered=stateData(:,61:63);
+ddx_d_ori=stateData(:,64:66);
+ddw_d_ori=stateData(:,67:69);
+qp_cpu_time_Ori=stateData(:,70);
+qp_nWSR_Ori=stateData(:,71);
 
+
+ufe_Now=dataOut(:,1:8);
 last_nWSR=dataOut(:,11);
 last_cpuTime=dataOut(:,12);
 tauR=dataOut(:,13:17);
@@ -29,8 +38,7 @@ ddw_d_qpRes=dataOut(:,45:47);
 pe_Body_Old=dataOut(:,48:53);
 pe_Body_delta=dataOut(:,54:59);
 pe_Body_Accumu=dataOut(:,60:65);
-wL_filtered=dataOut(:,66:68);
-eul_filtered=dataOut(:,69:71);
+
 
 time=(1:1:length(dataOut(:,1)))*0.001;
 
@@ -118,20 +126,22 @@ plot(time,IcmdL);
 legend('m1','m2','m3','m4','m5')
 ylabel('Lleg Icmd')
 
-figure();
+figure("Name",'ddx-ddw');
 for i=1:1:3
 subplot(2,3,i)
 plot(time,ddx_d_cmd(:,i));
 hold on;
+plot(time,ddx_d_ori(:,i));
 plot(time,ddx_d_qpRes(:,i));
-legend('ddx-d-cmd','ddx-d-qp')
+legend('ddx-d-cmd','ddx-d-ori','ddx-d-qp')
 end
 for i=1:1:3
 subplot(2,3,i+3)
 plot(time,ddw_d_cmd(:,i));
 hold on;
+plot(time,ddw_d_ori(:,i));
 plot(time,ddw_d_qpRes(:,i));
-legend('ddw-d-cmd','ddw-d-qp')
+legend('ddw-d-cmd','ddw-d-ori','ddw-d-qp')
 end
 
 
@@ -160,6 +170,28 @@ plot(time,pe_Body_Accumu_OriRec(:,4:6));
 legend('peBL-Body-Accumu-x','peBL-Body-Accumu-y','peBL-Body-Accumu-z', ...
     'peBL-Body-Accumu-ori-x','peBL-Body-Accumu-ori-y','peBL-Body-Accumu-ori-z');
 
+
+figure("Name",'ufe');
+subplot(2,2,1)
+plot(time,ufe_Ori(:,1:3));
+hold on;
+plot(time,ufe_Now(:,1:3));
+legend('feR-x-ori','feR-y-ori','feR-z-ori','feR-x-Now','feR-y-Now','feR-z-Now');
+subplot(2,2,2)
+plot(time,ufe_Ori(:,4));
+hold on;
+plot(time,ufe_Now(:,4));
+legend('feR-z-ori','feR-z-Now');
+subplot(2,2,3)
+plot(time,ufe_Ori(:,5:7));
+hold on;
+plot(time,ufe_Now(:,5:7));
+legend('feL-x-ori','feL-y-ori','feL-z-ori','feL-x-Now','feL-y-Now','feL-z-Now');
+subplot(2,2,4)
+plot(time,ufe_Ori(:,8));
+hold on;
+plot(time,ufe_Now(:,8));
+legend('feL-z-ori','feL-z-Now');
 
 
 

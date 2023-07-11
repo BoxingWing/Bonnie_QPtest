@@ -215,13 +215,18 @@ void WBC_srb::runQP(bool EN) {
     Vector3d omegaPred;
     //omegaPred=w_cur*dt+ddw_d_qpRes*0.5*dt*dt;
     omegaPred=w_cur*dt+ddw_d*0.5*dt*dt;
-    R_pred= RodForm(omegaPred)*R_cur;
+    R_pred=RodForm(omegaPred)*R_cur;
+
+    Vector3d thetaDes;
+    thetaDes= getWfromR(R_pred);
 
 //    pCoM_pred = pCoM_cur;
 //    R_pred= Rd;
-
-    pe_Body_pred.block<3,1>(0,0)=R_pred.transpose()*(pe_cur.block<3,1>(0,0)-pCoM_pred);
-    pe_Body_pred.block<3,1>(3,0)=R_pred.transpose()*(pe_cur.block<3,1>(3,0)-pCoM_pred);
+    Vector3d peW;
+    peW=pe_cur.block<3,1>(0,0)-pCoM_pred;
+    pe_Body_pred.block<3,1>(0,0)=R_pred.transpose()*peW;
+    peW=pe_cur.block<3,1>(3,0)-pCoM_pred;
+    pe_Body_pred.block<3,1>(3,0)=R_pred.transpose()*peW;
     pe_Body_pred(2)=-0.6;
     pe_Body_pred(5)=-0.6;
 
